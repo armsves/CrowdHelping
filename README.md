@@ -22,10 +22,9 @@ A decentralized platform connecting donors with verified social impact activitie
 
 ### 💰 For Donors
 1. Explore verified activities
-2. Make cross-chain donations
-3. Set delegation preferences
-4. Monitor impact metrics
-5. Participate in governance voting
+2. Set delegation preferences
+3. Monitor impact metrics
+4. Participate in governance voting
 
 ### 🤝 For Volunteers
 1. Discover local activities
