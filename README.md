@@ -40,6 +40,17 @@ A decentralized platform connecting donors with verified social impact activitie
 - Identity: WorldID
 - Frontend: Vite.js, TypeScript
 
+Key Features Implemented:
+Authentication: WorldID + Wallet connection
+Role-based Access: Different views per user type
+Real-time Updates: Using TanStack Query
+Responsive Design: Tailwind + shadcn
+Web3 Integration: wagmi v2 + viem
+Data Persistence: Smart contract + IPFS
+Location Services: Maps integration
+Image Handling: IPFS storage
+Verification System: WorldID + GPS
+
 # Hello Gator 🐊
 
 Easily get up-to-speed with (and integrate) the MetaMask Delegation Toolkit with this demonstration. It includes examples for all the core elements including Delegator Account (ERC-4337) creation, sending User Operations, and the Delegation lifecycle. Example code is provided utilising the Delegator Smart Account.
