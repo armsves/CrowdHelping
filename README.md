@@ -38,9 +38,7 @@ A decentralized platform connecting donors with verified social impact activitie
 
 - Smart Contracts: Solidity
 - Identity: WorldID
-- Cross-chain: LayerZero
-- Frontend: Next.js, TypeScript
-- Backend: Node.js
+- Frontend: Vite.js, TypeScript
 
 # Hello Gator 🐊
 
