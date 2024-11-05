@@ -15,6 +15,10 @@ contract CrowdHelpDAOTest is Test {
     event ActivityVerified(uint256 indexed id);
     event FundsDelegated(uint256 indexed id, uint256 amount);
     event EmergencyWithdraw(uint256 amount);
+    event UserVerified(address indexed user);
+    event UserUnverified(address indexed user);
+    event VoteCast(uint256 indexed activityId, address indexed voter);
+    event CountUpdated(uint256 newCount);
 
     function setUp() public {
         owner = address(this);
@@ -25,6 +29,87 @@ contract CrowdHelpDAOTest is Test {
         vm.deal(user2, 100 ether);
         
         dao = new CrowdHelpingDAO();
+    }
+
+    function testVerifyUser() public {
+        vm.expectEmit(true, false, false, false);
+        emit UserVerified(user1);
+        
+        dao.verifyUser(user1);
+        assertTrue(dao.verifiedUsers(user1));
+    }
+
+    function testUnverifyUser() public {
+        dao.verifyUser(user1);
+        
+        vm.expectEmit(true, false, false, false);
+        emit UserUnverified(user1);
+        
+        dao.unverifyUser(user1);
+        assertFalse(dao.verifiedUsers(user1));
+    }
+
+    function testFailUnverifiedUserVote() public {
+        vm.prank(user1);
+        dao.createActivity("Charity Event", 1 ether);
+        
+        vm.prank(user2);
+        dao.voteForActivity(1);
+    }
+
+    function testVoteForActivity() public {
+        vm.prank(user1);
+        dao.createActivity("Charity Event", 1 ether);
+        
+        dao.verifyUser(user2);
+        
+        vm.expectEmit(true, true, false, false);
+        emit VoteCast(1, user2);
+        
+        vm.prank(user2);
+        dao.voteForActivity(1);
+        
+        (,,,,,,uint256 votes) = dao.getActivity(1);
+        assertEq(votes, 1);
+        assertTrue(dao.hasVoted(1, user2));
+    }
+
+    function testFailDoubleVote() public {
+        vm.prank(user1);
+        dao.createActivity("Charity Event", 1 ether);
+        
+        dao.verifyUser(user2);
+        
+        vm.startPrank(user2);
+        dao.voteForActivity(1);
+        dao.voteForActivity(1);
+        vm.stopPrank();
+    }
+
+    function testGetCount() public {
+        assertEq(dao.getCount(), 0);
+    }
+
+    function testIncrement() public {
+        dao.increment();
+        assertEq(dao.getCount(), 1);
+    }
+
+    function testDecrement() public {
+        dao.increment();
+        dao.decrement();
+        assertEq(dao.getCount(), 0);
+    }
+
+    function testFailDecrementBelowZero() public {
+        dao.decrement();
+    }
+
+    function testReset() public {
+        dao.increment();
+        dao.increment();
+        dao.reset();
+        assertEq(dao.getCount(), 0);
     }
 
     function testCreateActivity() public {
@@ -40,7 +125,8 @@ contract CrowdHelpDAOTest is Test {
             uint256 fundingGoal,
             uint256 currentFunding,
             bool isVerified,
-            bool fundsDelegated
+            bool fundsDelegated,
+            uint256 votes
         ) = dao.getActivity(1);
         
         assertEq(organizer, user1);
@@ -49,11 +135,7 @@ contract CrowdHelpDAOTest is Test {
         assertEq(currentFunding, 0);
         assertEq(isVerified, false);
         assertEq(fundsDelegated, false);
-    }
-
-    function testFailCreateActivityZeroGoal() public {
-        vm.prank(user1);
-        dao.createActivity("Charity Event", 0);
+        assertEq(votes, 0);
     }
 
     function testDonate() public {
@@ -66,17 +148,9 @@ contract CrowdHelpDAOTest is Test {
         vm.prank(user2);
         dao.donate{value: 0.5 ether}(1);
         
-        (,,, uint256 currentFunding,,) = dao.getActivity(1);
+        (,,,uint256 currentFunding,,,) = dao.getActivity(1);
         assertEq(currentFunding, 0.5 ether);
         assertEq(dao.getDonation(1, user2), 0.5 ether);
-    }
-
-    function testFailDonateZeroAmount() public {
-        vm.prank(user1);
-        dao.createActivity("Charity Event", 1 ether);
-        
-        vm.prank(user2);
-        dao.donate{value: 0}(1);
     }
 
     function testVerifyActivity() public {
@@ -91,18 +165,8 @@ contract CrowdHelpDAOTest is Test {
         
         dao.verifyActivity(1);
         
-        (,,,, bool isVerified,) = dao.getActivity(1);
+        (,,,,bool isVerified,,) = dao.getActivity(1);
         assertTrue(isVerified);
-    }
-
-    function testFailVerifyUnreachedGoal() public {
-        vm.prank(user1);
-        dao.createActivity("Charity Event", 1 ether);
-        
-        vm.prank(user2);
-        dao.donate{value: 0.5 ether}(1);
-        
-        dao.verifyActivity(1);
     }
 
     function testDelegateFunds() public {
@@ -120,9 +184,32 @@ contract CrowdHelpDAOTest is Test {
         vm.prank(user1);
         dao.delegateFunds(1);
         
-        (,,,, bool isVerified, bool fundsDelegated) = dao.getActivity(1);
+        (,,,,bool isVerified, bool fundsDelegated,) = dao.getActivity(1);
         assertTrue(isVerified);
         assertTrue(fundsDelegated);
+    }
+
+    function testFailCreateActivityZeroGoal() public {
+        vm.prank(user1);
+        dao.createActivity("Charity Event", 0);
+    }
+
+    function testFailDonateZeroAmount() public {
+        vm.prank(user1);
+        dao.createActivity("Charity Event", 1 ether);
+        
+        vm.prank(user2);
+        dao.donate{value: 0}(1);
+    }
+
+    function testFailVerifyUnreachedGoal() public {
+        vm.prank(user1);
+        dao.createActivity("Charity Event", 1 ether);
+        
+        vm.prank(user2);
+        dao.donate{value: 0.5 ether}(1);
+        
+        dao.verifyActivity(1);
     }
 
     function testFailDelegateUnverifiedActivity() public {

@@ -37,8 +37,6 @@ const BUNDLER_URL = process.env.NEXT_PUBLIC_BUNDLER_URL!;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;
 const PAYMASTER_POLICY_ID = process.env.NEXT_PUBLIC_PAYMASTER_POLICY_ID;
 
-const DAO_CONTRACT = "0xE66Fc7083f010f6Bd4bB0cb3083cbd789864eb9B" as const;
-
 function App() {
 	const [delegateAccount, setDelegateSmartAccount] =
 		useState<MetaMaskSmartAccount<Implementation>>();

@@ -45,7 +45,8 @@ const BUNDLER_URL = process.env.NEXT_PUBLIC_BUNDLER_URL!;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;
 const PAYMASTER_POLICY_ID = process.env.NEXT_PUBLIC_PAYMASTER_POLICY_ID;
 
-const DAO_CONTRACT = "0xE66Fc7083f010f6Bd4bB0cb3083cbd789864eb9B" as const;
+const DAO_CONTRACT_ADDRESS =
+	"0xFED5dC3244F67ACc3F55Fa6d76A4a06ED242b45E" as const;
 
 const fetchActivity = async (id: number) => {
 	const publicClient = createPublicClient({
@@ -265,7 +266,7 @@ function App() {
 			calls: [
 				{
 					abi: daoAbi,
-					to: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
+					to: DAO_CONTRACT_ADDRESS,
 					functionName: "createActivity",
 					// value: parseEther("0.00001"),
 					args: ["work it baby 2", parseEther("1")],
