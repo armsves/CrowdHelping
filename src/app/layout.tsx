@@ -3,11 +3,10 @@ import type { Metadata } from 'next'
 import { type ReactNode } from 'react'
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Hello Gator 🐊',
-  description: 'Minimum Viable Gator',
+  title: 'CrowdHelping',
+  description: 'Minimum Viable CrowdHelping',
 }
 
 export default function RootLayout(props: { children: ReactNode }) {
@@ -16,7 +15,6 @@ export default function RootLayout(props: { children: ReactNode }) {
       <body>
           <Header />
           <div className="mx-auto w-10/12 sm:w-3/5 md:w-1/2">
-            <Link href="/pages/verify">Verify Yourself</Link>
             {props.children}
           </div>
           <Footer />

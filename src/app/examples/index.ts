@@ -11,6 +11,11 @@ const examples = Object.freeze([
     description: "See the various signer options in action.",
   },
   {
+    name: "Custom Signers2",
+    path: "signers2",
+    description: "See the various signer options in action.",
+  },
+  {
     name: "Enable and Disable Delegations",
     path: "toggle-delegation",
     description: "Toggle the ability to redeem a delegation.",

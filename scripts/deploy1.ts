@@ -33,7 +33,7 @@ async function main() {
 
 		console.log("🌐 Setting up public client...");
 		const publicClient = createPublicClient({
-			chain: flowTestnet,
+			chain,
 			transport: http(RPC_URL),
 		});
 		console.log("✅ Public client initialized");
@@ -49,7 +49,7 @@ async function main() {
 		const environment = await deployDeleGatorEnvironment(
 			walletClient,
 			publicClient,
-			flowTestnet,
+			chain,
 			deployedContracts,
 			BigInt(100000000),
 			BigInt(100000000),
