@@ -1,41 +1,41 @@
 "use client";
 
+import { formatJSON } from "@/app/utils";
+import {
+  DelegationFramework,
+  type DelegationStruct,
+  Implementation,
+  type MetaMaskSmartAccount,
+  SINGLE_DEFAULT_MODE,
+  createExecution,
+  createRootDelegation,
+  getExplorerAddressLink,
+  getExplorerTransactionLink,
+  toMetaMaskSmartAccount,
+} from "@codefi/delegator-core-viem";
+import type { WEB3AUTH_NETWORK_TYPE } from "@web3auth/base";
+import { randomBytes } from "crypto";
+import { createPimlicoClient } from "permissionless/clients/pimlico";
 import { useEffect, useState } from "react";
 import {
-  Client,
+  type Client,
+  type Hex,
   createPublicClient,
-  Hex,
   http,
   toHex,
   zeroAddress,
 } from "viem";
-import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import { sepolia as chain } from "viem/chains";
 import {
-  Implementation,
-  toMetaMaskSmartAccount,
-  type MetaMaskSmartAccount,
-  type DelegationStruct,
-  createRootDelegation,
-  DelegationFramework,
-  SINGLE_DEFAULT_MODE,
-  getExplorerTransactionLink,
-  getExplorerAddressLink,
-  createExecution,
-} from "@codefi/delegator-core-viem";
-import {
+  type UserOperationReceipt,
   createBundlerClient,
   createPaymasterClient,
-  UserOperationReceipt,
 } from "viem/account-abstraction";
-import { createPimlicoClient } from "permissionless/clients/pimlico";
-import { randomBytes } from "crypto";
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+import { sepolia as chain } from "viem/chains";
 import {
   type SignatoryFactoryName,
   useSelectedSignatory,
 } from "./useSelectedSignatory";
-import { WEB3AUTH_NETWORK_TYPE } from "@web3auth/base";
-import { formatJSON } from "@/app/utils";
 
 const WEB3_AUTH_CLIENT_ID = process.env.NEXT_PUBLIC_WEB3_CLIENT_ID!;
 const WEB3_AUTH_NETWORK = process.env
@@ -82,7 +82,7 @@ function DeleGatorAccount({
 
   return (
     <>
-      <a href={explorerUrl} target="_blank">
+      <a href={explorerUrl} target="_blank" rel="noreferrer">
         {account.address} - {deploymentStatus}
       </a>
     </>
@@ -409,7 +409,7 @@ function App() {
       )}
       <h3>UserOp receipt:</h3>
       {userOpExplorerUrl && (
-        <a href={userOpExplorerUrl} target="_blank">
+        <a href={userOpExplorerUrl} target="_blank" rel="noreferrer">
           View transaction
         </a>
       )}
