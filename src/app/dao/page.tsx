@@ -65,8 +65,8 @@ function App() {
 	});
 	const paymasterContext = PAYMASTER_POLICY_ID
 		? {
-				sponsorshipPolicyId: PAYMASTER_POLICY_ID,
-			}
+			sponsorshipPolicyId: PAYMASTER_POLICY_ID,
+		}
 		: undefined;
 
 	const pimlicoClient = createPimlicoClient({
@@ -203,6 +203,7 @@ function App() {
 		if (!canSignDelegation) {
 			return;
 		}
+		/*
 
 		const { fast: fee } = await pimlicoClient.getUserOperationGasPrice();
 
@@ -211,22 +212,42 @@ function App() {
 			calls: [
 				{
 					abi: daoAbi,
-					to: DAO_CONTRACT,
+					to: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
 					functionName: "createActivity",
-					args: ["hello", parseEther("1")],
+					args: ["work it baby 2", parseEther("1")],
 				},
 			],
 			...fee,
 		});
+		*/
+
+		const publicClient = createPublicClient({
+			chain,
+			transport: http(RPC_URL),
+		  })
+
+		const result = await publicClient.readContract({
+			//client,
+			abi: daoAbi,
+			address: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
+			functionName: 'getActivity',
+			args: [BigInt(2)],
+		  });
+	  
+		  console.log('Contract read result:', result);
+		
+
+		/*console.log('userOpHash',userOpHash)
 
 		const userOperationReceipt =
 			await bundlerClient.waitForUserOperationReceipt({
 				hash: userOpHash,
 			});
+		
 		console.log(
 			"🚀 ~ handleCallContract ~ userOperationReceipt:",
 			userOperationReceipt,
-		);
+		);*/
 	};
 
 	return (

@@ -1,211 +1,401 @@
 export const daoAbi = [
-	{ type: "constructor", inputs: [], stateMutability: "nonpayable" },
-	{ type: "receive", stateMutability: "payable" },
 	{
-		type: "function",
-		name: "activities",
-		inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-		outputs: [
-			{ name: "id", type: "uint256", internalType: "uint256" },
-			{ name: "organizer", type: "address", internalType: "address" },
-			{ name: "activityType", type: "string", internalType: "string" },
-			{ name: "fundingGoal", type: "uint256", internalType: "uint256" },
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "AlreadyVerified",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "FundingGoalNotReached",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "FundsAlreadyDelegated",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "InvalidActivity",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "InvalidAmount",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "TransferFailed",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "Unauthorized",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
 			{
-				name: "currentFunding",
-				type: "uint256",
-				internalType: "uint256",
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
 			},
-			{ name: "isVerified", type: "bool", internalType: "bool" },
-			{ name: "fundsDelegated", type: "bool", internalType: "bool" },
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "organizer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "activityType",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "fundingGoal",
+				"type": "uint256"
+			}
 		],
-		stateMutability: "view",
+		"name": "ActivityCreated",
+		"type": "event"
 	},
 	{
-		type: "function",
-		name: "createActivity",
-		inputs: [
-			{ name: "_activityType", type: "string", internalType: "string" },
-			{ name: "_fundingGoal", type: "uint256", internalType: "uint256" },
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
 		],
-		outputs: [],
-		stateMutability: "nonpayable",
+		"name": "ActivityVerified",
+		"type": "event"
 	},
 	{
-		type: "function",
-		name: "delegateFunds",
-		inputs: [{ name: "_activityId", type: "uint256", internalType: "uint256" }],
-		outputs: [],
-		stateMutability: "nonpayable",
-	},
-	{
-		type: "function",
-		name: "donate",
-		inputs: [{ name: "_activityId", type: "uint256", internalType: "uint256" }],
-		outputs: [],
-		stateMutability: "payable",
-	},
-	{
-		type: "function",
-		name: "getActivity",
-		inputs: [{ name: "_activityId", type: "uint256", internalType: "uint256" }],
-		outputs: [
-			{ name: "organizer", type: "address", internalType: "address" },
-			{ name: "activityType", type: "string", internalType: "string" },
-			{ name: "fundingGoal", type: "uint256", internalType: "uint256" },
+		"anonymous": false,
+		"inputs": [
 			{
-				name: "currentFunding",
-				type: "uint256",
-				internalType: "uint256",
-			},
-			{ name: "isVerified", type: "bool", internalType: "bool" },
-			{ name: "fundsDelegated", type: "bool", internalType: "bool" },
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newCount",
+				"type": "uint256"
+			}
 		],
-		stateMutability: "view",
+		"name": "CountUpdated",
+		"type": "event"
 	},
 	{
-		type: "function",
-		name: "getDonation",
-		inputs: [
-			{ name: "_activityId", type: "uint256", internalType: "uint256" },
-			{ name: "_donor", type: "address", internalType: "address" },
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "donor",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
 		],
-		outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-		stateMutability: "view",
+		"name": "DonationReceived",
+		"type": "event"
 	},
 	{
-		type: "function",
-		name: "owner",
-		inputs: [],
-		outputs: [{ name: "", type: "address", internalType: "address" }],
-		stateMutability: "view",
-	},
-	{
-		type: "function",
-		name: "totalActivities",
-		inputs: [],
-		outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-		stateMutability: "view",
-	},
-	{
-		type: "function",
-		name: "verifyActivity",
-		inputs: [{ name: "_activityId", type: "uint256", internalType: "uint256" }],
-		outputs: [],
-		stateMutability: "nonpayable",
-	},
-	{
-		type: "function",
-		name: "withdrawEmergency",
-		inputs: [],
-		outputs: [],
-		stateMutability: "nonpayable",
-	},
-	{
-		type: "event",
-		name: "ActivityCreated",
-		inputs: [
+		"anonymous": false,
+		"inputs": [
 			{
-				name: "id",
-				type: "uint256",
-				indexed: true,
-				internalType: "uint256",
-			},
-			{
-				name: "organizer",
-				type: "address",
-				indexed: true,
-				internalType: "address",
-			},
-			{
-				name: "activityType",
-				type: "string",
-				indexed: false,
-				internalType: "string",
-			},
-			{
-				name: "fundingGoal",
-				type: "uint256",
-				indexed: false,
-				internalType: "uint256",
-			},
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
 		],
-		anonymous: false,
+		"name": "EmergencyWithdraw",
+		"type": "event"
 	},
 	{
-		type: "event",
-		name: "ActivityVerified",
-		inputs: [
+		"anonymous": false,
+		"inputs": [
 			{
-				name: "id",
-				type: "uint256",
-				indexed: true,
-				internalType: "uint256",
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
 			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
 		],
-		anonymous: false,
+		"name": "FundsDelegated",
+		"type": "event"
 	},
 	{
-		type: "event",
-		name: "DonationReceived",
-		inputs: [
+		"inputs": [
 			{
-				name: "id",
-				type: "uint256",
-				indexed: true,
-				internalType: "uint256",
-			},
-			{
-				name: "donor",
-				type: "address",
-				indexed: true,
-				internalType: "address",
-			},
-			{
-				name: "amount",
-				type: "uint256",
-				indexed: false,
-				internalType: "uint256",
-			},
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
 		],
-		anonymous: false,
+		"name": "activities",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "organizer",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "activityType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fundingGoal",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "currentFunding",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isVerified",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "fundsDelegated",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
 	},
 	{
-		type: "event",
-		name: "EmergencyWithdraw",
-		inputs: [
+		"inputs": [
 			{
-				name: "amount",
-				type: "uint256",
-				indexed: false,
-				internalType: "uint256",
+				"internalType": "string",
+				"name": "_activityType",
+				"type": "string"
 			},
+			{
+				"internalType": "uint256",
+				"name": "_fundingGoal",
+				"type": "uint256"
+			}
 		],
-		anonymous: false,
+		"name": "createActivity",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
-		type: "event",
-		name: "FundsDelegated",
-		inputs: [
-			{
-				name: "id",
-				type: "uint256",
-				indexed: true,
-				internalType: "uint256",
-			},
-			{
-				name: "amount",
-				type: "uint256",
-				indexed: false,
-				internalType: "uint256",
-			},
-		],
-		anonymous: false,
+		"inputs": [],
+		"name": "decrement",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
-	{ type: "error", name: "AlreadyVerified", inputs: [] },
-	{ type: "error", name: "FundingGoalNotReached", inputs: [] },
-	{ type: "error", name: "FundsAlreadyDelegated", inputs: [] },
-	{ type: "error", name: "InvalidActivity", inputs: [] },
-	{ type: "error", name: "InvalidAmount", inputs: [] },
-	{ type: "error", name: "TransferFailed", inputs: [] },
-	{ type: "error", name: "Unauthorized", inputs: [] },
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_activityId",
+				"type": "uint256"
+			}
+		],
+		"name": "delegateFunds",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_activityId",
+				"type": "uint256"
+			}
+		],
+		"name": "donate",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_activityId",
+				"type": "uint256"
+			}
+		],
+		"name": "getActivity",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "organizer",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "activityType",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fundingGoal",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "currentFunding",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isVerified",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "fundsDelegated",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_activityId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_donor",
+				"type": "address"
+			}
+		],
+		"name": "getDonation",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "increment",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "reset",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalActivities",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_activityId",
+				"type": "uint256"
+			}
+		],
+		"name": "verifyActivity",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "withdrawEmergency",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
 ] as const;

@@ -4275,7 +4275,7 @@ __metadata:
     lokijs: ^1.5.12
     lucide-react: ^0.454.0
     next: 14.2.10
-    permissionless: ^0.2.10
+    permissionless: ^0.2.15
     pino-pretty: ^10.2.0
     postcss: ^8.4.45
     prop-types: ^15.8.1
@@ -4287,7 +4287,7 @@ __metadata:
     tailwindcss-animate: ^1.0.7
     typescript: ^5.2.2
     utf-8-validate: ^6.0.3
-    viem: 2.x
+    viem: ^2.21.40
     wagmi: ^2.12.25
   languageName: unknown
   linkType: soft
@@ -5778,12 +5778,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"permissionless@npm:^0.2.10":
-  version: 0.2.11
-  resolution: "permissionless@npm:0.2.11"
+"permissionless@npm:^0.2.15":
+  version: 0.2.15
+  resolution: "permissionless@npm:0.2.15"
   peerDependencies:
     viem: ^2.21.22
-  checksum: 9ca604387f6285684a83bdfdd22b75d8d04778485ab1fc2beba13fc6c702eaa45598e132bbc210a9464390880322e18946a1ddaf2517303a60ea66032ecc1019
+  checksum: b02491eea1404e95575a7b06132768fcbfdecb3ce36bde1ca27e371fdb1db6d040b1496be3717cd7647d0937bb3042b691bee48934f8cd92a1eb0c26d9a4ba94
   languageName: node
   linkType: hard
 
@@ -7537,7 +7537,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"viem@npm:^2.1.1, viem@npm:^2.17.0":
+"viem@npm:^2.1.1, viem@npm:^2.17.0, viem@npm:^2.21.40":
   version: 2.21.40
   resolution: "viem@npm:2.21.40"
   dependencies:
