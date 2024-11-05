@@ -84,3 +84,8 @@ yarn dev
 ## Support
 
 Feel free to open an issue or contact the team directly at [hellogators@consensys.io](mailto:hellogators@consensys.io).
+
+
+## Explorer on Flow
+
+https://evm-testnet.flowscan.io
