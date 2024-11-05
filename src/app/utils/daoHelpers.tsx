@@ -4,7 +4,7 @@ import { type Client, toHex } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { chain } from "../examples/shared";
 
-export const createSalt = () => toHex(randomBytes(8));
+export const createSalt = () => toHex(randomBytes(8).toString());
 
 export const createSmartAccount = (client: Client) => {
 	const privateKey = generatePrivateKey();

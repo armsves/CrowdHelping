@@ -24,13 +24,13 @@ import {
 	type SignatoryFactoryName,
 	useSelectedSignatory,
 } from "../examples/signers/useSelectedSignatory";
-import { daoAbi } from "./abi";
+import { daoAbi } from "../utils/abi";
 import {
 	DeleGatorAccount,
 	type DeploymentStatus,
 	createSalt,
 	createSmartAccount,
-} from "./daoHelpers";
+} from "../utils/daoHelpers";
 
 interface Activity {
 	creator: string;
@@ -292,120 +292,6 @@ function App() {
 
 	return (
 		<div className="p-6 bg-gray-50 rounded-lg space-y-6">
-			{/* Signatory Selection */}
-			{/* <div className="flex items-center gap-2">
-				<label className="font-medium text-gray-700">Signatory:</label>
-				<select
-					onChange={handleSignatoryChange}
-					value={selectedSignatoryName}
-					className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-				>
-					<option value="injectedProviderSignatoryFactory">
-						Injected provider
-					</option>
-					<option value="burnerSignatoryFactory">Burner private key</option>
-					<option value="web3AuthSignatoryFactory">Web3Auth</option>
-				</select>
-			</div> */}
-			{/* Logout Button */}
-			{canLogout && (
-				<button
-					type="button"
-					onClick={handleLogout}
-					className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-					disabled={!canLogout}
-				>
-					Logout
-				</button>
-			)}
-
-			<h3 className="">
-				Create and deploy "delegator" accounts. Create and sign delegation.
-			</h3>
-			{/* <Button
-				type="button"
-				onClick={async () => {
-					await handleCreateDelegator();
-					await handleDeployDelegator();
-
-					await handleCreateDelegation();
-
-					await handleSignDelegation();
-				}}
-			>
-				🐊 DeleGator 🐊
-			</Button> */}
-
-			{/* Account Creation Buttons */}
-			<div className="flex gap-3">
-				<button
-					type="button"
-					onClick={handleCreateDelegator}
-					disabled={!isValidSignatorySelected}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Create "delegator" Account
-				</button>
-				<button
-					type="button"
-					onClick={handleDeployDelegator}
-					disabled={!canDeployDelegatorAccount}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Deploy "delegator" Account
-				</button>
-			</div>
-			{/* Accounts Section */}
-			<div className="space-y-2">
-				<h3 className="text-lg font-semibold text-gray-900">Accounts:</h3>
-				<pre className="p-4 bg-white border border-gray-200 rounded-md overflow-auto text-sm text-gray-800">
-					Delegate:{" "}
-					<DeleGatorAccount
-						account={delegateAccount}
-						deploymentStatus={delegateDeploymentStatus}
-					/>
-					<br />
-					Delegator:{" "}
-					<DeleGatorAccount
-						account={delegatorAccount}
-						deploymentStatus={delegatorDeploymentStatus}
-					/>
-				</pre>
-			</div>
-			{/* Delegation Buttons */}
-			<div className="flex gap-3">
-				<button
-					type="button"
-					onClick={handleCreateDelegation}
-					disabled={!canCreateDelegation}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Create Delegation
-				</button>
-				<button
-					type="button"
-					onClick={handleSignDelegation}
-					disabled={!canSignDelegation}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Sign Delegation
-				</button>
-				{/* <button
-					type="button"
-					onClick={handleCallContract}
-					disabled={!canSignDelegation}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Call Contract
-				</button> */}
-			</div>
-			{/* Delegation Section */}
-			<div className="space-y-2">
-				<h3 className="text-lg font-semibold text-gray-900">Delegation:</h3>
-				<pre className="p-4 bg-white border border-gray-200 rounded-md overflow-auto text-sm text-gray-800">
-					{formatJSON(delegation)}
-				</pre>
-			</div>
 			{/* Add Activities Section */}
 			<div className="mt-8">
 				<h2 className="text-2xl font-bold mb-4">Activities</h2>
