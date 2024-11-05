@@ -19,7 +19,15 @@ const Header = () => {
 			<nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between h-16">
 					<div className="flex">
-						<div className="flex-shrink-0 flex items-center">
+						<div className="flex-shrink-0 flex items-center gap-2">
+							<div className="flex-shrink-0 flex items-center gap-2 overflow-hidden rounded-full">
+								<img
+									src="/crowdhelping_dao_logo.png"
+									alt="CrowdHelping DAO Logo"
+									width={40}
+									height={40}
+								/>
+							</div>
 							<span className="text-2xl font-bold text-blue-600">
 								CrowdHelping DAO
 							</span>
@@ -38,12 +46,6 @@ const Header = () => {
 						>
 							Vote
 						</a>
-						{/* <a
-							href="#"
-							className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
-						>
-							Contact
-						</a> */}
 					</div>
 				</div>
 			</nav>

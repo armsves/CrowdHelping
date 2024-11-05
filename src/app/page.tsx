@@ -2,13 +2,12 @@
 
 import { FlickeringBackground } from "@/components/flickering-background";
 import {
-  ArrowRight,
-  BarChart,
-  CheckCircle,
-  Globe,
-  Shield,
-  Users,
-  Zap,
+	ArrowRight,
+	BarChart,
+	CheckCircle,
+	Shield,
+	Users,
+	Zap
 } from "lucide-react";
 import { useState } from "react";
 
@@ -95,9 +94,9 @@ export default function LandingPage() {
 									icon: Shield,
 								},
 								{
-									name: "Cross-Chain Support",
-									description: "Donate across multiple blockchain networks",
-									icon: Globe,
+									name: "Activity Verification",
+									description: "On-chain proof of social impact",
+									icon: CheckCircle,
 								},
 								{
 									name: "Real-Time Impact Tracking",
@@ -108,11 +107,6 @@ export default function LandingPage() {
 									name: "Community Governance",
 									description: "Democratic fund allocation system",
 									icon: Users,
-								},
-								{
-									name: "Activity Verification",
-									description: "On-chain proof of social impact",
-									icon: CheckCircle,
 								},
 							].map((feature) => (
 								<div key={feature.name} className="relative">

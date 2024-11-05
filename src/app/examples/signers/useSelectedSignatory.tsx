@@ -4,39 +4,40 @@ import type {
   SignatoryFactoryConfig,
 } from "./SignatoryTypes";
 import { createBurnerSignatoryFactory } from "./burnerSignatoryFactory";
-import { createWeb3AuthSignatoryFactory } from "./web3AuthSignatoryFactory";
 import { createInjectedProviderSignatoryFactory } from "./injectedProviderSignatoryFactory";
+import { createWeb3AuthSignatoryFactory } from "./web3AuthSignatoryFactory";
 
 export type SignatoryFactoryName =
-  | "burnerSignatoryFactory"
-  | "web3AuthSignatoryFactory"
-  | "injectedProviderSignatoryFactory";
+	| "web3AuthSignatoryFactory"
+	| "burnerSignatoryFactory"
+	| "injectedProviderSignatoryFactory";
 
 export const useSelectedSignatory = (config: SignatoryFactoryConfig) => {
-  const [configuredFactoriesByName, setConfiguredFactoriesByName] = useState<{
-    [K in SignatoryFactoryName]: SignatoryFactory;
-  }>();
+	const [configuredFactoriesByName, setConfiguredFactoriesByName] =
+		useState<{
+			[K in SignatoryFactoryName]: SignatoryFactory;
+		}>();
 
-  const [selectedSignatoryName, setSelectedSignatoryName] =
-    useState<SignatoryFactoryName>("burnerSignatoryFactory");
+	const [selectedSignatoryName, setSelectedSignatoryName] =
+		useState<SignatoryFactoryName>("burnerSignatoryFactory");
 
-  useEffect(() => {
-    const factoriesByName = {
-      burnerSignatoryFactory: createBurnerSignatoryFactory(config),
-      web3AuthSignatoryFactory: createWeb3AuthSignatoryFactory(config),
-      injectedProviderSignatoryFactory:
-        createInjectedProviderSignatoryFactory(config),
-    };
-    setConfiguredFactoriesByName(factoriesByName);
-  }, []);
+	useEffect(() => {
+		const factoriesByName = {
+			web3AuthSignatoryFactory: createWeb3AuthSignatoryFactory(config),
+			burnerSignatoryFactory: createBurnerSignatoryFactory(config),
+			injectedProviderSignatoryFactory:
+				createInjectedProviderSignatoryFactory(config),
+		};
+		setConfiguredFactoriesByName(factoriesByName);
+	}, []);
 
-  const selectedSignatory =
-    configuredFactoriesByName &&
-    configuredFactoriesByName[selectedSignatoryName];
+	const selectedSignatory =
+		configuredFactoriesByName &&
+		configuredFactoriesByName[selectedSignatoryName];
 
-  return {
-    selectedSignatory,
-    setSelectedSignatoryName,
-    selectedSignatoryName,
-  };
+	return {
+		selectedSignatory,
+		setSelectedSignatoryName,
+		selectedSignatoryName,
+	};
 };
