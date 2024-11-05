@@ -52,7 +52,7 @@ export default function VerificationPage() {
 	};
 
 	const onSuccess = () => {
-		router.push("/dao"); // Replace with your next page route
+		router.push("/list"); // Replace with your next page route
 	};
 
 	return (
