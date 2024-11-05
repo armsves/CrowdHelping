@@ -1,88 +1,160 @@
-import { deployDeleGatorEnvironment } from "@codefi/delegator-core-viem";
-import dotenv from "dotenv";
-import { createPublicClient, createWalletClient, http, parseGwei } from "viem";
-import { privateKeyToAccount } from "viem/accounts";
-import { flowTestnet } from "viem/chains";
+import {
+    AllowedCalldataEnforcer,
+    AllowedMethodsEnforcer,
+    AllowedTargetsEnforcer,
+    ArgsEqualityCheckEnforcer,
+    BlockNumberEnforcer,
+    DelegationManager,
+    DeployedEnforcer,
+    ERC20BalanceGteEnforcer,
+    ERC20TransferAmountEnforcer,
+    EntryPoint,
+    HybridDeleGator,
+    IdEnforcer,
+    LimitedCallsEnforcer,
+    MultiSigDeleGator,
+    NativeBalanceGteEnforcer,
+    NativeTokenPaymentEnforcer,
+    NativeTokenTransferAmountEnforcer,
+    NonceEnforcer,
+    RedeemerEnforcer,
+    SimpleFactory,
+    TimestampEnforcer,
+    ValueLteEnforcer,
+} from "@codefi/delegation-abis";
+import {
+    type ContractMetaData,
+    getDeleGatorEnvironment_v1,
+} from "@codefi/delegation-utils";
+import type { Chain, Hex, PublicClient, WalletClient } from "viem";
 
-dotenv.config();
+/**
+ *
+ * @param walletClient The wallet to deploy with
+ * @param publicClient Access to the public chain
+ * @param chain The chain to deploy on
+ * @param contractMetadata The metadata of the contract to deploy
+ * @param args
+ * @returns
+ */
+export async function deployContract(
+	walletClient: WalletClient,
+	publicClient: PublicClient,
+	chain: Chain,
+	{ bytecode, abi }: ContractMetaData,
+	args: any[] = [],
+	maxFeePerGas?: bigint,
+	maxPriorityFeePerGas?: bigint,
+) {
+	const hash = await walletClient.deployContract({
+		abi,
+		bytecode,
+		args,
+		account: walletClient.account!,
+		chain,
+		maxFeePerGas,
+		maxPriorityFeePerGas,
+	});
+	const receipt = await publicClient.waitForTransactionReceipt({
+		hash,
+	});
+	const address = (await receipt).contractAddress!;
 
-const PRIVATE_KEY = process.env.PRIVATE_KEY as `0x${string}`;
-const RPC_URL = process.env.SEPOLIA_RPC_URL as string;
-
-if (!PRIVATE_KEY || !RPC_URL) {
-	throw new Error("Missing environment variables");
+	return { address, hash, receipt };
 }
 
-async function main() {
-	try {
-		const chain = flowTestnet;
-		console.log("🚀 Starting deployment process...");
+/**
+ * Deploys the contracts needed for the Delegation Framework and DeleGator SCA to be functional as well as all Caveat Enforcers.
+ * @param walletClient
+ * @param publicClient
+ * @param chain
+ */
+export async function deployDeleGatorEnvironment(
+	walletClient: WalletClient,
+	publicClient: PublicClient,
+	chain: Chain,
+	deployedContracts: { [contract: string]: Hex } = {},
+	maxFeePerGas?: bigint,
+	maxPriorityFePerGas?: bigint,
+) {
+	const deployContractCurried = async (
+		name: string,
+		contract: ContractMetaData,
+		params: any[] = [],
+	) => {
+		if (deployedContracts[name]) {
+			return {
+				address: deployedContracts[name],
+				name,
+			};
+		}
 
-		console.log("📦 Initializing account from private key...");
-		const account = privateKeyToAccount(PRIVATE_KEY);
-		console.log(`✅ Account created: ${account.address}`);
-
-		// Set up gas parameters
-		const maxFeePerGas = parseGwei("50"); // Adjust this value based on network conditions
-		const maxPriorityFeePerGas = parseGwei("2"); // Adjust this value based on network conditions
-
-		console.log("🔗 Setting up wallet client...");
-		const walletClient = createWalletClient({
-			account,
-			chain,
-			transport: http(RPC_URL),
-		});
-		console.log("✅ Wallet client initialized");
-
-		console.log("🌐 Setting up public client...");
-		const publicClient = createPublicClient({
-			chain: flowTestnet,
-			transport: http(RPC_URL),
-		});
-		console.log("✅ Public client initialized");
-
-		const deployedContracts = {
-			// 'ContractName': '0x...' as `0x${string}`,
-		};
-
-		console.log("📝 Starting DeleGator environment deployment...");
-		console.log("⏳ This may take several minutes. Please wait...");
-
-		const startTime = Date.now();
-		const environment = await deployDeleGatorEnvironment(
+		const deployedContract = await deployContract(
 			walletClient,
 			publicClient,
-			flowTestnet,
-			deployedContracts,
+			chain,
+			contract,
+			params,
 			maxFeePerGas,
-			maxPriorityFeePerGas,
+			maxPriorityFePerGas,
 		);
-		const endTime = Date.now();
-		const deploymentTime = (endTime - startTime) / 1000;
 
-		console.log("🎉 Deployment successful!");
-		console.log(
-			`⏱️ Total deployment time: ${deploymentTime.toFixed(2)} seconds`,
-		);
-		console.log("\n📄 Deployed contracts:");
-		console.table(environment);
-	} catch (error) {
-		console.error("\n❌ Deployment failed:");
-		if (error instanceof Error) {
-			console.error(`Error message: ${error.message}`);
-			console.error(`Stack trace: ${error.stack}`);
-		} else {
-			console.error(error);
-		}
-		process.exit(1);
+		deployedContracts[name] = deployedContract.address as Hex;
+
+		return { ...deployedContract, name };
+	};
+
+	// Deploy v0.0.3 DeleGator contracts
+	// - deploy standalone contracts
+	const standaloneContracts = {
+		SimpleFactory,
+		AllowedCalldataEnforcer,
+		AllowedTargetsEnforcer,
+		AllowedMethodsEnforcer,
+		ArgsEqualityCheckEnforcer,
+		DeployedEnforcer,
+		TimestampEnforcer,
+		BlockNumberEnforcer,
+		LimitedCallsEnforcer,
+		ERC20BalanceGteEnforcer,
+		IdEnforcer,
+		ERC20TransferAmountEnforcer,
+		NonceEnforcer,
+		ValueLteEnforcer,
+		NativeTokenTransferAmountEnforcer,
+		NativeBalanceGteEnforcer,
+		RedeemerEnforcer,
+	};
+	for (const [name, contract] of Object.entries(standaloneContracts)) {
+		await deployContractCurried(name, contract);
 	}
-}
 
-console.log("🏁 Starting deployment script...");
-main()
-	.then(() => {
-		console.log("✨ Script execution completed");
-	})
-	.catch((error) => {
-		console.error("💥 Script execution failed:", error);
-	});
+	// - deploy dependencies
+	const delegationManager = await deployContractCurried(
+		"DelegationManager",
+		DelegationManager,
+		[walletClient.account?.address],
+	);
+
+	// - NativeTokenPaymentEnforcer DelegationManager and ArgsEqualityCheckEnforcer as constructor args
+	await deployContractCurried(
+		"NativeTokenPaymentEnforcer",
+		NativeTokenPaymentEnforcer,
+		[delegationManager.address, deployedContracts["ArgsEqualityCheckEnforcer"]],
+	);
+
+	const entryPoint = await deployContractCurried("EntryPoint", EntryPoint);
+
+	// - deploy DeleGator implementations
+	await deployContractCurried("HybridDeleGatorImpl", HybridDeleGator, [
+		delegationManager.address,
+		entryPoint.address,
+	]);
+	await deployContractCurried("MultiSigDeleGatorImpl", MultiSigDeleGator, [
+		delegationManager.address,
+		entryPoint.address,
+	]);
+
+	// Format deployments
+	return getDeleGatorEnvironment_v1(deployedContracts);
+}
