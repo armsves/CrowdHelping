@@ -1,5 +1,6 @@
 "use client";
 
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 
@@ -34,7 +35,7 @@ const Header = () => {
 						</div>
 					</div>
 					<div className="flex items-center">
-          <a
+						<a
 							href="/subscribe"
 							className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
 						>
@@ -52,6 +53,7 @@ const Header = () => {
 						>
 							Vote
 						</a>
+						<ConnectButton />
 					</div>
 				</div>
 			</nav>
