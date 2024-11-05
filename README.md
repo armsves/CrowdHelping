@@ -2,6 +2,10 @@
 
 A decentralized platform connecting donors with verified social impact activities through transparent delegation and verification mechanisms. Built on Web3 technology, CrowdHelping DAO empowers communities to organize, fund, and verify social initiatives like beach cleanups, tree planting, and disaster relief efforts.
 
+## Deployed Contracts
+
+Contract Address: 0xE2B2919105BF77a64B9cf87342dA523A6ca76b22
+
 ## 🌟 Key Features
 
 - **Smart Contract Delegation**: Automated and transparent fund distribution
@@ -115,3 +119,11 @@ https://evm-testnet.flowscan.io
 | NativeBalanceGteEnforcer          | 0x5D0DE71168D980A18C07ec7B657Cdab3510C2559 |
 | NativeTokenPaymentEnforcer        | 0x39c8B33204d47aD1A3b6aCC013c8Ac11aEce746e |
 | RedeemerEnforcer                  | 0xdAc9c82b91B2F8FC852f597C874EC86cb2E8BB61 |
+
+## Deploy Contract
+
+```bash
+rm -rf cache out && forge build && forge script script/CrowdHelpingDAO.s.sol:DeployScript --rpc-url https://sepolia.drpc.org --broadcast --verify --verifier blockscout -vvvv
+```
+
+
