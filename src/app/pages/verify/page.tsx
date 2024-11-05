@@ -1,51 +1,94 @@
-"use client"
-import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
+"use client";
+
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "@/hooks/use-toast";
 import type { ISuccessResult } from "@worldcoin/idkit";
+import { IDKitWidget, VerificationLevel } from "@worldcoin/idkit";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { verify } from "../../actions/verify";
 
-function Example() {
+export default function VerificationPage() {
+	const router = useRouter();
+	const [isLoading, setIsLoading] = useState(false);
 
-  // TODO: Calls your implemented server route
-  const handleProof = async (result: ISuccessResult) => {
-    console.log(
-      "Proof received from IDKit, sending to backend:\n",
-      JSON.stringify(result)
-    ); // Log the proof from IDKit to the console for visibility
-    const data = await verify(result);
-    if (data.success) {
-      console.log("Successful response from backend:\n", JSON.stringify(data)); // Log the response from our backend for visibility
-    } else {
-      throw new Error(`Verification failed: ${data.detail}`);
-    }
-  };
+	const handleProof = async (result: ISuccessResult) => {
+		try {
+			setIsLoading(true);
+			const data = await verify(result);
 
-  // TODO: Functionality after verifying
-  const onSuccess = () => {
-    console.log("Success")
-  };
+			if (data.success) {
+				toast({
+					title: "Success",
+					description: "Verification successful!",
+					variant: "default",
+				});
+				return data;
+			}
 
-  return (
-    <div>
-      <h2>Verify Yourself</h2>
-      <h3>You will gain voting and posting rights when you verify yourself</h3>
-      <IDKitWidget
-        app_id={process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`}
-        action={process.env.NEXT_PUBLIC_WLD_ACTION as string}
-        //false
-        verification_level={VerificationLevel.Device}
-        handleVerify={handleProof}
-        onSuccess={onSuccess}>
-        {({ open }) => (
-          <button
-            onClick={open}
-          >
-            Verify with World ID
-          </button>
-        )}
-      </IDKitWidget>
+			toast({
+				title: "Error",
+				description: "Verification failed. Please try again.",
+				variant: "destructive",
+			});
+			throw new Error(`Verification failed: ${data.detail}`);
+		} catch (error) {
+			console.error(error);
+			toast({
+				title: "Error",
+				description: "Something went wrong. Please try again.",
+				variant: "destructive",
+			});
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
-    </div>
-  );
+	const onSuccess = () => {
+		router.push("/dao"); // Replace with your next page route
+	};
+
+	return (
+		<div className="container max-w-md mx-auto py-10">
+			<Card>
+				<CardHeader>
+					<CardTitle>Verify Your Identity</CardTitle>
+					<CardDescription>
+						Complete the verification to access the voting feature
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="bg-muted p-4 rounded-lg space-y-2">
+						<h3 className="font-medium">Benefits of verification:</h3>
+						<ul className="list-disc pl-4 space-y-1 text-sm">
+							<li>Access to voting rights</li>
+							<li>Ability to create posts</li>
+							<li>Participate in community decisions</li>
+						</ul>
+					</div>
+
+					<IDKitWidget
+						app_id={process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`}
+						action={process.env.NEXT_PUBLIC_WLD_ACTION as string}
+						verification_level={VerificationLevel.Device}
+						handleVerify={handleProof}
+						onSuccess={onSuccess}
+					>
+						{({ open }) => (
+							<Button onClick={open} className="w-full" disabled={isLoading}>
+								{isLoading ? "Verifying..." : "Verify with World ID"}
+							</Button>
+						)}
+					</IDKitWidget>
+				</CardContent>
+			</Card>
+		</div>
+	);
 }
-
-export default Example;
