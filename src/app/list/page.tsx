@@ -1,6 +1,7 @@
 "use client";
 
 import { formatJSON } from "@/app/utils";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import {
 	type DelegationStruct,
@@ -277,8 +278,8 @@ function App() {
 			userOperationReceipt,
 		);
 		toast({
-			title: "Success!!!"
-		})
+			title: "Success!!!",
+		});
 	};
 
 	return (
@@ -298,7 +299,6 @@ function App() {
 					<option value="web3AuthSignatoryFactory">Web3Auth</option>
 				</select>
 			</div> */}
-
 			{/* Logout Button */}
 			{canLogout && (
 				<button
@@ -311,8 +311,26 @@ function App() {
 				</button>
 			)}
 
+			<h3 className="">
+				Create and deploy "delegator" accounts. Create and sign delegation.
+			</h3>
+			<Button
+				type="button"
+				onClick={async () => {
+					await handleCreateDelegator();
+
+					await handleDeployDelegator();
+
+					await handleCreateDelegation();
+
+					await handleSignDelegation();
+				}}
+			>
+				🐊 DeleGator 🐊
+			</Button>
+
 			{/* Account Creation Buttons */}
-			<div className="flex gap-3">
+			{/* <div className="flex gap-3">
 				<button
 					type="button"
 					onClick={handleCreateDelegator}
@@ -329,8 +347,7 @@ function App() {
 				>
 					Deploy "delegator" Account
 				</button>
-			</div>
-
+			</div> */}
 			{/* Accounts Section */}
 			<div className="space-y-2">
 				<h3 className="text-lg font-semibold text-gray-900">Accounts:</h3>
@@ -348,9 +365,8 @@ function App() {
 					/>
 				</pre>
 			</div>
-
 			{/* Delegation Buttons */}
-			<div className="flex gap-3">
+			{/* <div className="flex gap-3">
 				<button
 					type="button"
 					onClick={handleCreateDelegation}
@@ -366,8 +382,8 @@ function App() {
 					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					Sign Delegation
-				</button>
-				{/* <button
+				</button> */}
+			{/* <button
 					type="button"
 					onClick={handleCallContract}
 					disabled={!canSignDelegation}
@@ -375,8 +391,7 @@ function App() {
 				>
 					Call Contract
 				</button> */}
-			</div>
-
+			{/* </div> */}
 			{/* Delegation Section */}
 			<div className="space-y-2">
 				<h3 className="text-lg font-semibold text-gray-900">Delegation:</h3>
@@ -384,7 +399,6 @@ function App() {
 					{formatJSON(delegation)}
 				</pre>
 			</div>
-
 			{/* Add Activities Section */}
 			<div className="mt-8">
 				<h2 className="text-2xl font-bold mb-4">Activities</h2>
