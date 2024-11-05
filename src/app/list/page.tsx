@@ -1,6 +1,7 @@
 "use client";
 
 import { formatJSON } from "@/app/utils";
+import { toast } from "@/hooks/use-toast";
 import {
 	type DelegationStruct,
 	Implementation,
@@ -86,6 +87,10 @@ function App() {
 			web3AuthNetwork: WEB3_AUTH_NETWORK,
 			rpcUrl: RPC_URL,
 		});
+
+	useEffect(() => {
+		setSelectedSignatoryName("injectedProviderSignatoryFactory");
+	}, [setSelectedSignatoryName]);
 
 	const activityQueries = useQueries({
 		queries: [1, 2].map((id) => ({
@@ -240,42 +245,6 @@ function App() {
 		});
 	};
 
-	// useEffect(() => {
-	// 	const getItems = async () => {
-	// 		const publicClient = createPublicClient({
-	// 			chain,
-	// 			transport: http(RPC_URL),
-	// 		});
-
-	// 		const result1 = await publicClient.readContract({
-	// 			//client,
-	// 			abi: daoAbi,
-	// 			address: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
-	// 			functionName: "getActivity",
-	// 			args: [BigInt(1)],
-	// 		});
-	// 		const result2 = await publicClient.readContract({
-	// 			//client,
-	// 			abi: daoAbi,
-	// 			address: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
-	// 			functionName: "getActivity",
-	// 			args: [BigInt(2)],
-	// 		});
-	// 		const result3 = await publicClient.readContract({
-	// 			//client,
-	// 			abi: daoAbi,
-	// 			address: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
-	// 			functionName: "getActivity",
-	// 			args: [BigInt(3)],
-	// 		});
-
-	// 		console.log("Contract read result1:", result1);
-	// 		console.log("Contract read result2:", result2);
-	// 		console.log("Contract read result3:", result3);
-	// 	};
-	// 	getItems();
-	// }, []);
-
 	const handleCallContract = async () => {
 		if (!canSignDelegation) {
 			return;
@@ -307,25 +276,28 @@ function App() {
 			"🚀 ~ handleCallContract ~ userOperationReceipt:",
 			userOperationReceipt,
 		);
+		toast({
+			title: "Success!!!"
+		})
 	};
 
 	return (
 		<div className="p-6 bg-gray-50 rounded-lg space-y-6">
 			{/* Signatory Selection */}
-			<div className="flex items-center gap-2">
+			{/* <div className="flex items-center gap-2">
 				<label className="font-medium text-gray-700">Signatory:</label>
 				<select
 					onChange={handleSignatoryChange}
 					value={selectedSignatoryName}
 					className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
 				>
-					<option value="burnerSignatoryFactory">Burner private key</option>
 					<option value="injectedProviderSignatoryFactory">
 						Injected provider
 					</option>
+					<option value="burnerSignatoryFactory">Burner private key</option>
 					<option value="web3AuthSignatoryFactory">Web3Auth</option>
 				</select>
-			</div>
+			</div> */}
 
 			{/* Logout Button */}
 			{canLogout && (
@@ -395,14 +367,14 @@ function App() {
 				>
 					Sign Delegation
 				</button>
-				<button
+				{/* <button
 					type="button"
 					onClick={handleCallContract}
 					disabled={!canSignDelegation}
 					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					Call Contract
-				</button>
+				</button> */}
 			</div>
 
 			{/* Delegation Section */}
@@ -437,6 +409,15 @@ function App() {
 									<span className="font-semibold">Amount:</span>{" "}
 									{activity.amount.toString()} wei
 								</p>
+
+								<button
+									type="button"
+									onClick={handleCallContract}
+									disabled={!canSignDelegation}
+									className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									Subscribe
+								</button>
 							</div>
 						))}
 					</div>
