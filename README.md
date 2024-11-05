@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/dc7c02ad-3195-43c8-af8f-fc1734ca54f2" width="200" alt="crowdhelping_dao_logo">
+</p>
+
 # CrowdHelping DAO
 
 A decentralized platform connecting donors with verified social impact activities through transparent delegation and verification mechanisms. Built on Web3 technology, CrowdHelping DAO empowers communities to organize, fund, and verify social initiatives like beach cleanups, tree planting, and disaster relief efforts.
