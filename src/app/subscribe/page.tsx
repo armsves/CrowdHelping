@@ -45,7 +45,7 @@ const BUNDLER_URL = process.env.NEXT_PUBLIC_BUNDLER_URL!;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;
 const PAYMASTER_POLICY_ID = process.env.NEXT_PUBLIC_PAYMASTER_POLICY_ID;
 
-const DAO_CONTRACT = "0xE66Fc7083f010f6Bd4bB0cb3083cbd789864eb9B" as const;
+const DAO_CONTRACT = process.env.NEXT_PUBLIC_DAO_CONTRACT_ADDRESS! as `0x${string}`; 
 
 const fetchActivity = async (id: number) => {
 	const publicClient = createPublicClient({
@@ -55,10 +55,10 @@ const fetchActivity = async (id: number) => {
 
 	const result = (await publicClient.readContract({
 		abi: daoAbi,
-		address: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
+		address: DAO_CONTRACT,
 		functionName: "getActivity",
 		args: [BigInt(id)],
-	})) as [string, string, bigint, bigint, boolean, boolean];
+	})) as [string, string, bigint, bigint, boolean, boolean, bigint];
 	console.log("🚀 ~ fetchActivity ~ result:", id, result);
 
 	return {
@@ -69,16 +69,12 @@ const fetchActivity = async (id: number) => {
 };
 
 function App() {
-	const [delegateAccount, setDelegateSmartAccount] =
-		useState<MetaMaskSmartAccount<Implementation>>();
-	const [delegatorAccount, setDelegatorAccount] =
-		useState<MetaMaskSmartAccount<Implementation>>();
+	const [delegateAccount, setDelegateSmartAccount] = useState<MetaMaskSmartAccount<Implementation>>();
+	const [delegatorAccount, setDelegatorAccount] = useState<MetaMaskSmartAccount<Implementation>>();
 	const [delegation, setDelegation] = useState<DelegationStruct>();
 	const [userOpReceipt, setUserOpReceipt] = useState<UserOperationReceipt>();
-	const [delegateDeploymentStatus, setDelegateDeploymentStatus] =
-		useState<DeploymentStatus>("counterfactual");
-	const [delegatorDeploymentStatus, setDelegatorDeploymentStatus] =
-		useState<DeploymentStatus>("counterfactual");
+	const [delegateDeploymentStatus, setDelegateDeploymentStatus] = useState<DeploymentStatus>("counterfactual");
+	const [delegatorDeploymentStatus, setDelegatorDeploymentStatus] = useState<DeploymentStatus>("counterfactual");
 
 	const { selectedSignatory, setSelectedSignatoryName, selectedSignatoryName } =
 		useSelectedSignatory({
@@ -265,7 +261,7 @@ function App() {
 			calls: [
 				{
 					abi: daoAbi,
-					to: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
+					to: DAO_CONTRACT,
 					functionName: "createActivity",
 					// value: parseEther("0.00001"),
 					args: ["work it baby 2", parseEther("1")],

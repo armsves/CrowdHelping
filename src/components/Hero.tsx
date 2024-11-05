@@ -15,7 +15,7 @@ const Hero = () => {
       <div className="text-white text-opacity-50">Integrate delegation into your dapp in minutes</div>
       <div className="mt-5 flex flex-col md:flex-row justify-center">
         <a href="https://docs.gator.metamask.io/" target="_blank" className="bg-white text-black rounded-md px-2 py-1 mb-2 md:mb-0 md:mr-2 hover:bg-gray-200">Docs</a>
-        <a href="https://github.com/MetaMask/hello-gator" target="_blank" className="bg-white text-black rounded-md px-2 py-1 hover:bg-gray-200">Github</a>
+        <a href="https://github.com/armsves/CrowdHelping" target="_blank" className="bg-white text-black rounded-md px-2 py-1 hover:bg-gray-200">Github</a>
       </div>
     </div>
   );
