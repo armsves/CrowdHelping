@@ -49,25 +49,3 @@ function Example() {
 }
 
 export default Example;
-
-/*
-
-// (If using Next.js - IDKitWidget must be run on client)
-"use client"
-import { IDKitWidget, VerificationLevel } from '@worldcoin/idkit'
-
-// TODO: Calls your implemented server route
-const verifyProof = async (proof) => {
-  throw new Error("TODO: verify proof server route")
-};
-
-// TODO: Functionality after verifying
-const onSuccess = () => {
-  console.log("Success")
-};
-
-// ...
-
-
-
-*/

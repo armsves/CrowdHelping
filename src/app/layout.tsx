@@ -7,8 +7,8 @@ import Header from '../components/Header';
 import '../styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Hello Gator 🐊',
-  description: 'Minimum Viable Gator',
+  title: 'CrowdHelping',
+  description: 'Minimum Viable CrowdHelping',
 }
 
 export default function RootLayout(props: { children: ReactNode }) {

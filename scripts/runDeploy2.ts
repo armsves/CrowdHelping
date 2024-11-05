@@ -1,4 +1,5 @@
-import { deployDeleGatorEnvironment } from "@codefi/delegator-core-viem";
+//import { deployDeleGatorEnvironment } from "@codefi/delegator-core-viem";
+import { deployDeleGatorEnvironment } from "./deployDelegationFramework";
 import dotenv from "dotenv";
 import { createPublicClient, createWalletClient, http } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
@@ -51,7 +52,9 @@ async function main() {
       walletClient,
       publicClient,
       flowTestnet,
-      // deployedContracts,
+      deployedContracts,
+      BigInt(100000000),
+      BigInt(100000000),
     );
     const endTime = Date.now();
     const deploymentTime = (endTime - startTime) / 1000; // Convert to seconds

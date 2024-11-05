@@ -1,6 +1,7 @@
 "use client";
 
 import examples from "@/app/examples";
+import Link from 'next/link';
 
 const Header = () => {
   function selectExample() {
@@ -29,6 +30,7 @@ const Header = () => {
     >
       <div className="mx-auto w-full md:w-1/2 my-10">
         <div className="flex flex-col md:flex-row justify-between items-center">
+        <Link href="/pages/verify">Verify</Link>
           <h1 className="text-4xl font-bold mb-4 md:mb-0">
             <a href="/" className="no-underline text-white">
               Delegation Toolkit
