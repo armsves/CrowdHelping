@@ -11,7 +11,7 @@ import {
 import type { WEB3AUTH_NETWORK_TYPE } from "@web3auth/base";
 import { createPimlicoClient } from "permissionless/clients/pimlico";
 import { useEffect, useState } from "react";
-import { createPublicClient, http, parseEther, zeroAddress } from "viem";
+import { createPublicClient, http, zeroAddress } from "viem";
 import {
 	type UserOperationReceipt,
 	createBundlerClient,
@@ -65,8 +65,8 @@ function App() {
 	});
 	const paymasterContext = PAYMASTER_POLICY_ID
 		? {
-			sponsorshipPolicyId: PAYMASTER_POLICY_ID,
-		}
+				sponsorshipPolicyId: PAYMASTER_POLICY_ID,
+			}
 		: undefined;
 
 	const pimlicoClient = createPimlicoClient({
@@ -224,18 +224,17 @@ function App() {
 		const publicClient = createPublicClient({
 			chain,
 			transport: http(RPC_URL),
-		  })
+		});
 
 		const result = await publicClient.readContract({
 			//client,
 			abi: daoAbi,
 			address: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
-			functionName: 'getActivity',
+			functionName: "getActivity",
 			args: [BigInt(2)],
-		  });
-	  
-		  console.log('Contract read result:', result);
-		
+		});
+
+		console.log("Contract read result:", result);
 
 		/*console.log('userOpHash',userOpHash)
 
@@ -251,104 +250,102 @@ function App() {
 	};
 
 	return (
-		<div>
-			<h2>Viem Client Quickstart</h2>
-			<p>
-				In the following example, two DeleGator accounts are created (the
-				"delegate" in the background when the page loads and the "delegator"
-				when the "Create DeleGator Account" is pressed). Note: a random salt is
-				used each time an account is created, so even if you've deployed one in
-				the past, a new one will be created.
-			</p>
-			<p>
-				Full control is then delegated from the "delegator" to the "delegate",
-				via a signed Delegation.
-			</p>
-			<p>
-				Before the Delegation can be used, the "delegator" account must be
-				deployed. The "delegate" may be deployed as part of the UserOp used to
-				redeem the delegation.
-			</p>
-			<p>
-				The "delegate" then invokes this delegation to transfer 0 ETH (given the
-				account has no balance). This is sent to the bundler, via a signed User
-				Operation, where it is settled on-chain.
-			</p>
-			<label>Signatory:</label>{" "}
-			<select
-				onChange={handleSignatoryChange}
-				value={selectedSignatoryName}
-				className="bg-white text-black rounded-md px-2 py-1"
-			>
-				<option value="burnerSignatoryFactory">Burner private key</option>
-				<option value="injectedProviderSignatoryFactory">
-					Injected provider
-				</option>
-				<option value="web3AuthSignatoryFactory">Web3Auth</option>
-			</select>
-			<br />
+		<div className="p-6 bg-gray-50 rounded-lg space-y-6">
+			{/* Signatory Selection */}
+			<div className="flex items-center gap-2">
+				<label className="font-medium text-gray-700">Signatory:</label>
+				<select
+					onChange={handleSignatoryChange}
+					value={selectedSignatoryName}
+					className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+				>
+					<option value="burnerSignatoryFactory">Burner private key</option>
+					<option value="injectedProviderSignatoryFactory">
+						Injected provider
+					</option>
+					<option value="web3AuthSignatoryFactory">Web3Auth</option>
+				</select>
+			</div>
+
+			{/* Logout Button */}
 			{canLogout && (
 				<button
 					onClick={handleLogout}
-					className="bg-white text-black rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
+					className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 					disabled={!canLogout}
 				>
 					Logout
 				</button>
 			)}
-			<br />
-			<button
-				onClick={handleCreateDelegator}
-				disabled={!isValidSignatorySelected}
-				className="bg-white text-black rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-			>
-				Create "delegator" Account
-			</button>{" "}
-			<button
-				onClick={handleDeployDelegator}
-				disabled={!canDeployDelegatorAccount}
-				className="bg-white text-black rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-			>
-				Deploy "delegator" Account
-			</button>
-			<h3>Accounts:</h3>
-			<pre style={{ overflow: "auto" }}>
-				Delegate:{" "}
-				<DeleGatorAccount
-					account={delegateAccount}
-					deploymentStatus={delegateDeploymentStatus}
-				/>
-				<br />
-				Delegator:{" "}
-				<DeleGatorAccount
-					account={delegatorAccount}
-					deploymentStatus={delegatorDeploymentStatus}
-				/>
-			</pre>
-			<br />
-			<button
-				onClick={handleCreateDelegation}
-				disabled={!canCreateDelegation}
-				className="bg-white text-black rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-			>
-				Create Delegation
-			</button>{" "}
-			<button
-				onClick={handleSignDelegation}
-				disabled={!canSignDelegation}
-				className="bg-white text-black rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-			>
-				Sign Delegation
-			</button>
-			<button
-				onClick={handleCallContract}
-				disabled={!canSignDelegation}
-				className="bg-white text-black rounded-md px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200"
-			>
-				Call Contract
-			</button>
-			<h3>Delegation:</h3>
-			<pre style={{ overflow: "auto" }}>{formatJSON(delegation)}</pre>
+
+			{/* Account Creation Buttons */}
+			<div className="flex gap-3">
+				<button
+					onClick={handleCreateDelegator}
+					disabled={!isValidSignatorySelected}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					Create "delegator" Account
+				</button>
+				<button
+					onClick={handleDeployDelegator}
+					disabled={!canDeployDelegatorAccount}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					Deploy "delegator" Account
+				</button>
+			</div>
+
+			{/* Accounts Section */}
+			<div className="space-y-2">
+				<h3 className="text-lg font-semibold text-gray-900">Accounts:</h3>
+				<pre className="p-4 bg-white border border-gray-200 rounded-md overflow-auto text-sm text-gray-800">
+					Delegate:{" "}
+					<DeleGatorAccount
+						account={delegateAccount}
+						deploymentStatus={delegateDeploymentStatus}
+					/>
+					<br />
+					Delegator:{" "}
+					<DeleGatorAccount
+						account={delegatorAccount}
+						deploymentStatus={delegatorDeploymentStatus}
+					/>
+				</pre>
+			</div>
+
+			{/* Delegation Buttons */}
+			<div className="flex gap-3">
+				<button
+					onClick={handleCreateDelegation}
+					disabled={!canCreateDelegation}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					Create Delegation
+				</button>
+				<button
+					onClick={handleSignDelegation}
+					disabled={!canSignDelegation}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					Sign Delegation
+				</button>
+				<button
+					onClick={handleCallContract}
+					disabled={!canSignDelegation}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+					Call Contract
+				</button>
+			</div>
+
+			{/* Delegation Section */}
+			<div className="space-y-2">
+				<h3 className="text-lg font-semibold text-gray-900">Delegation:</h3>
+				<pre className="p-4 bg-white border border-gray-200 rounded-md overflow-auto text-sm text-gray-800">
+					{formatJSON(delegation)}
+				</pre>
+			</div>
 		</div>
 	);
 }
