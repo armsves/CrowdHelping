@@ -56,7 +56,7 @@ const fetchActivity = async (id: number) => {
 
 	const result = (await publicClient.readContract({
 		abi: daoAbi,
-		address: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
+		address: DAO_CONTRACT_ADDRESS,
 		functionName: "getActivity",
 		args: [BigInt(id)],
 	})) as [string, string, bigint, bigint, boolean, boolean];
