@@ -5,6 +5,7 @@ contract CrowdHelpingDAO {
     // State variables
     uint256 public totalActivities;
     address public immutable owner;
+        uint256 private count;
     
     struct Activity {
         uint256 id;
@@ -25,7 +26,8 @@ contract CrowdHelpingDAO {
     event ActivityVerified(uint256 indexed id);
     event FundsDelegated(uint256 indexed id, uint256 amount);
     event EmergencyWithdraw(uint256 amount);
-    
+    event CountUpdated(uint256 newCount);
+
     error InvalidActivity();
     error Unauthorized();
     error InvalidAmount();
@@ -36,6 +38,7 @@ contract CrowdHelpingDAO {
     
     constructor() {
         owner = msg.sender;
+        count = 0;
     }
     
     modifier activityExists(uint256 _activityId) {
@@ -160,6 +163,30 @@ contract CrowdHelpingDAO {
         if (!success) revert TransferFailed();
         
         emit EmergencyWithdraw(balance);
+    }
+
+// Function to get current count
+    function getCount() public view returns (uint256) {
+        return count;
+    }
+
+    // Function to increment count
+    function increment() public {
+        count += 1;
+        emit CountUpdated(count);
+    }
+
+    // Function to decrement count
+    function decrement() public {
+        require(count > 0, "Count cannot be negative");
+        count -= 1;
+        emit CountUpdated(count);
+    }
+
+    // Function to reset count to zero
+    function reset() public {
+        count = 0;
+        emit CountUpdated(count);
     }
     
     receive() external payable {}

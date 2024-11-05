@@ -32,6 +32,13 @@ export const daoAbi = [
 	},
 	{
 		type: "function",
+		name: "decrement",
+		inputs: [],
+		outputs: [],
+		stateMutability: "nonpayable",
+	},
+	{
+		type: "function",
 		name: "delegateFunds",
 		inputs: [{ name: "_activityId", type: "uint256", internalType: "uint256" }],
 		outputs: [],
@@ -64,6 +71,13 @@ export const daoAbi = [
 	},
 	{
 		type: "function",
+		name: "getCount",
+		inputs: [],
+		outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+		stateMutability: "view",
+	},
+	{
+		type: "function",
 		name: "getDonation",
 		inputs: [
 			{ name: "_activityId", type: "uint256", internalType: "uint256" },
@@ -74,10 +88,24 @@ export const daoAbi = [
 	},
 	{
 		type: "function",
+		name: "increment",
+		inputs: [],
+		outputs: [],
+		stateMutability: "nonpayable",
+	},
+	{
+		type: "function",
 		name: "owner",
 		inputs: [],
 		outputs: [{ name: "", type: "address", internalType: "address" }],
 		stateMutability: "view",
+	},
+	{
+		type: "function",
+		name: "reset",
+		inputs: [],
+		outputs: [],
+		stateMutability: "nonpayable",
 	},
 	{
 		type: "function",
@@ -139,6 +167,19 @@ export const daoAbi = [
 				name: "id",
 				type: "uint256",
 				indexed: true,
+				internalType: "uint256",
+			},
+		],
+		anonymous: false,
+	},
+	{
+		type: "event",
+		name: "CountUpdated",
+		inputs: [
+			{
+				name: "newCount",
+				type: "uint256",
+				indexed: false,
 				internalType: "uint256",
 			},
 		],

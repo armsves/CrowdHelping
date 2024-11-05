@@ -1,5 +1,6 @@
+import { daoAbi } from "@/app/dao/abi";
 import dotenv from "dotenv";
-import { createPublicClient, http, parseEther } from "viem";
+import { createPublicClient, http } from "viem";
 import {
 	createBundlerClient,
 	toCoinbaseSmartAccount,
@@ -7,23 +8,23 @@ import {
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
+// Contract address
+const CONTRACT_ADDRESS =
+	"0xE66Fc7083f010f6Bd4bB0cb3083cbd789864eb9B" as `0x${string}`;
+
 const main = async () => {
-	// Load environment variables
 	dotenv.config();
 
-	// Validate environment variables
 	if (!process.env.PIMLICO_PRIVATE_KEY || !process.env.PIMLICO_API_KEY)
 		throw new Error("PIMLICO_PRIVATE_KEY or PIMLICO_API_KEY not found");
 	const PIMLICO_PRIVATE_KEY = process.env.PIMLICO_PRIVATE_KEY;
 	const PIMLICO_API_KEY = process.env.PIMLICO_API_KEY;
 
-	// Initialize clients
 	const client = createPublicClient({
 		chain: sepolia,
-		transport: http(),
+		transport: http("https://sepolia.gateway.tenderly.co"),
 	});
 
-	// Setup account
 	const owner = privateKeyToAccount(PIMLICO_PRIVATE_KEY as `0x${string}`);
 
 	const account = await toCoinbaseSmartAccount({
@@ -36,21 +37,21 @@ const main = async () => {
 		account,
 		paymaster: true,
 		transport: http(
-			`https://api.pimlico.io/v2/1/rpc?apikey=${PIMLICO_API_KEY}`,
+			`https://api.pimlico.io/v2/sepolia/rpc?apikey=${PIMLICO_API_KEY}`,
 		),
 	});
 
-	// Send transaction
 	const hash = await bundlerClient.sendUserOperation({
 		calls: [
 			{
-				to: "0xD04D21acfd53AacedF705f92C31161b276cdA123",
-				value: parseEther("0.001"),
+				abi: daoAbi,
+				to: CONTRACT_ADDRESS,
+				functionName: "increment",
+				// args: ["hello", parseEther("1")],
 			},
 		],
 	});
 
-	// Wait for receipt
 	const receipt = await bundlerClient.waitForUserOperationReceipt({ hash });
 	console.log("🚀 ~ receipt:", receipt);
 };

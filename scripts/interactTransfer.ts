@@ -1,138 +1,52 @@
-import "dotenv/config";
-import { createSmartAccountClient } from "permissionless";
-import { toSafeSmartAccount } from "permissionless/accounts";
-import { createPimlicoClient } from "permissionless/clients/pimlico";
+import dotenv from "dotenv";
+import { createPublicClient, http, parseEther } from "viem";
 import {
-	createPublicClient,
-	encodeFunctionData,
-	http,
-	parseAbiItem,
-	type Hex,
-} from "viem";
-import { entryPoint07Address } from "viem/account-abstraction";
+	createBundlerClient,
+	toCoinbaseSmartAccount,
+} from "viem/account-abstraction";
 import { privateKeyToAccount } from "viem/accounts";
 import { sepolia } from "viem/chains";
 
-const erc20PaymasterAddress =
-	"0x000000000041F3aFe8892B48D88b6862efe0ec8d" as const;
-const usdcAddress = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
-
 const main = async () => {
-	const privateKey = process.env.PIMLICO_PRIVATE_KEY as Hex;
+	dotenv.config();
 
-	const publicClient = createPublicClient({
+	if (!process.env.PIMLICO_PRIVATE_KEY || !process.env.PIMLICO_API_KEY)
+		throw new Error("PIMLICO_PRIVATE_KEY or PIMLICO_API_KEY not found");
+	const PIMLICO_PRIVATE_KEY = process.env.PIMLICO_PRIVATE_KEY;
+	const PIMLICO_API_KEY = process.env.PIMLICO_API_KEY;
+
+	const client = createPublicClient({
 		chain: sepolia,
-		transport: http("https://rpc.ankr.com/eth_sepolia"),
+		transport: http("https://sepolia.gateway.tenderly.co"), // Use Sepolia RPC URL[5]
 	});
 
-	const apiKey = process.env.PIMLICO_API_KEY; // REPLACE THIS
-	const pimlicoUrl = `https://api.pimlico.io/v2/sepolia/rpc?apikey=${apiKey}`;
+	const owner = privateKeyToAccount(PIMLICO_PRIVATE_KEY as `0x${string}`);
 
-	const pimlicoClient = createPimlicoClient({
-		transport: http(pimlicoUrl),
-		entryPoint: {
-			address: entryPoint07Address,
-			version: "0.7",
-		},
+	const account = await toCoinbaseSmartAccount({
+		client,
+		owners: [owner],
 	});
 
-	const account = await toSafeSmartAccount({
-		client: publicClient,
-		owners: [privateKeyToAccount(privateKey)],
-		version: "1.4.1",
-		setupTransactions: [
-			{
-				to: usdcAddress,
-				value: 0n,
-				data: encodeFunctionData({
-					abi: [
-						parseAbiItem("function approve(address spender, uint256 amount)"),
-					],
-					args: [
-						erc20PaymasterAddress,
-						0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffn,
-					],
-				}),
-			},
-		],
-	});
-
-	console.log(
-		`Smart account address: https://sepolia.etherscan.io/address/${account.address}`,
-	);
-
-	const senderUsdcBalance = await publicClient.readContract({
-		abi: [
-			parseAbiItem("function balanceOf(address account) returns (uint256)"),
-		],
-		address: usdcAddress,
-		functionName: "balanceOf",
-		args: [account.address],
-	});
-
-	if (senderUsdcBalance < 1_000_000n) {
-		throw new Error(
-			`insufficient USDC balance for counterfactual wallet address ${account.address}: ${
-				Number(senderUsdcBalance) / 1000000
-			} USDC, required at least 1 USDC. Load up balance at https://faucet.circle.com/`,
-		);
-	}
-
-	console.log(
-		`Smart account USDC balance: ${Number(senderUsdcBalance) / 1000000} USDC`,
-	);
-
-	const smartAccountClient = createSmartAccountClient({
-		client: publicClient,
+	const bundlerClient = createBundlerClient({
+		client,
 		account,
-		chain: sepolia,
-		bundlerTransport: http(pimlicoUrl),
-		paymaster: {
-			async getPaymasterData(parameters) {
-				const gasEstimates = await pimlicoClient.estimateUserOperationGas({
-					...parameters,
-					paymaster: erc20PaymasterAddress,
-					account: account,
-				});
-				return {
-					paymaster: erc20PaymasterAddress,
-					paymasterData: "0x" as Hex,
-					paymasterPostOpGasLimit: gasEstimates.paymasterPostOpGasLimit ?? 0n,
-					paymasterVerificationGasLimit:
-						gasEstimates.paymasterVerificationGasLimit ?? 0n,
-				};
-			},
-			async getPaymasterStubData(parameters) {
-				const gasEstimates = await pimlicoClient.estimateUserOperationGas({
-					...parameters,
-					paymaster: erc20PaymasterAddress,
-					account: account,
-				});
-				return {
-					paymaster: erc20PaymasterAddress,
-					paymasterData: "0x" as Hex,
-					paymasterPostOpGasLimit: gasEstimates.paymasterPostOpGasLimit ?? 0n,
-					paymasterVerificationGasLimit:
-						gasEstimates.paymasterVerificationGasLimit ?? 0n,
-				};
-			},
-		},
-		userOperation: {
-			estimateFeesPerGas: async () => {
-				return (await pimlicoClient.getUserOperationGasPrice()).fast;
-			},
-		},
+		paymaster: true,
+		transport: http(
+			`https://api.pimlico.io/v2/sepolia/rpc?apikey=${PIMLICO_API_KEY}`, // Changed to sepolia endpoint
+		),
 	});
 
-	const txHash = await smartAccountClient.sendTransaction({
-		to: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
-		value: 0n,
-		data: "0x1234",
+	const hash = await bundlerClient.sendUserOperation({
+		calls: [
+			{
+				to: "0xD04D21acfd53AacedF705f92C31161b276cdA123",
+				value: parseEther("0.001"),
+			},
+		],
 	});
 
-	console.log(
-		`User operation included: https://sepolia.etherscan.io/tx/${txHash}`,
-	);
+	const receipt = await bundlerClient.waitForUserOperationReceipt({ hash });
+	console.log("🚀 ~ receipt:", receipt);
 };
 
 main()
