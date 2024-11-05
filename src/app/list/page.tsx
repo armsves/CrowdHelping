@@ -1,7 +1,6 @@
 "use client";
 
 import { formatJSON } from "@/app/utils";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import {
 	type DelegationStruct,
@@ -179,6 +178,8 @@ function App() {
 		setDelegatorAccount(smartAccount);
 		setDelegatorDeploymentStatus("counterfactual");
 		setDelegation(undefined);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
 	const handleDeployDelegator = async () => {
@@ -215,9 +216,11 @@ function App() {
 		);
 
 		setDelegatorDeploymentStatus("deployed");
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
-	const handleCreateDelegation = () => {
+	const handleCreateDelegation = async () => {
 		if (!canCreateDelegation) {
 			return;
 		}
@@ -229,6 +232,8 @@ function App() {
 		);
 
 		setDelegation(newDelegation);
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
 	const handleSignDelegation = async () => {
@@ -244,9 +249,11 @@ function App() {
 			...delegation,
 			signature,
 		});
+
+		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
-	const handleCallContract = async () => {
+	const handleCallContract = async (activityId: number) => {
 		if (!canSignDelegation) {
 			return;
 		}
@@ -260,6 +267,7 @@ function App() {
 					abi: daoAbi,
 					to: "0xB02ABD1d44DA0A9250f203C14bd17DFd019aa93D",
 					functionName: "createActivity",
+					// value: parseEther("0.00001"),
 					args: ["work it baby 2", parseEther("1")],
 				},
 			],
@@ -314,11 +322,10 @@ function App() {
 			<h3 className="">
 				Create and deploy "delegator" accounts. Create and sign delegation.
 			</h3>
-			<Button
+			{/* <Button
 				type="button"
 				onClick={async () => {
 					await handleCreateDelegator();
-
 					await handleDeployDelegator();
 
 					await handleCreateDelegation();
@@ -327,10 +334,10 @@ function App() {
 				}}
 			>
 				🐊 DeleGator 🐊
-			</Button>
+			</Button> */}
 
 			{/* Account Creation Buttons */}
-			{/* <div className="flex gap-3">
+			<div className="flex gap-3">
 				<button
 					type="button"
 					onClick={handleCreateDelegator}
@@ -347,7 +354,7 @@ function App() {
 				>
 					Deploy "delegator" Account
 				</button>
-			</div> */}
+			</div>
 			{/* Accounts Section */}
 			<div className="space-y-2">
 				<h3 className="text-lg font-semibold text-gray-900">Accounts:</h3>
@@ -366,7 +373,7 @@ function App() {
 				</pre>
 			</div>
 			{/* Delegation Buttons */}
-			{/* <div className="flex gap-3">
+			<div className="flex gap-3">
 				<button
 					type="button"
 					onClick={handleCreateDelegation}
@@ -382,8 +389,8 @@ function App() {
 					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
 					Sign Delegation
-				</button> */}
-			{/* <button
+				</button>
+				{/* <button
 					type="button"
 					onClick={handleCallContract}
 					disabled={!canSignDelegation}
@@ -391,7 +398,7 @@ function App() {
 				>
 					Call Contract
 				</button> */}
-			{/* </div> */}
+			</div>
 			{/* Delegation Section */}
 			<div className="space-y-2">
 				<h3 className="text-lg font-semibold text-gray-900">Delegation:</h3>
@@ -426,11 +433,11 @@ function App() {
 
 								<button
 									type="button"
-									onClick={handleCallContract}
+									onClick={() => handleCallContract(index)}
 									disabled={!canSignDelegation}
 									className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									Subscribe
+									Vote
 								</button>
 							</div>
 						))}
