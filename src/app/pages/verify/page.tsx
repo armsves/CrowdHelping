@@ -19,33 +19,36 @@ export default function VerificationPage() {
 	const router = useRouter();
 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleProof = async (result: ISuccessResult) => {
+	const handleProof = async (result: ISuccessResult): Promise<void> => {
 		try {
 			setIsLoading(true);
 			const data = await verify(result);
+			console.log("data", data.success);
 
-			if (data.success) {
+			if (data.success === true) {
 				toast({
 					title: "Success",
 					description: "Verification successful!",
 					variant: "default",
 				});
-				return data;
+			} else {
+				/*
+				toast({
+					title: "Error",
+					description: "Verification failed. Please try again.",
+					variant: "destructive",
+				});*/
+				throw new Error(`${data.detail}`);
 			}
-
-			toast({
-				title: "Error",
-				description: "Verification failed. Please try again.",
-				variant: "destructive",
-			});
-			throw new Error(`Verification failed: ${data.detail}`);
 		} catch (error) {
 			console.error(error);
+			/*
 			toast({
 				title: "Error",
 				description: "Something went wrong. Please try again.",
 				variant: "destructive",
-			});
+			});*/
+			throw new Error(`${error}`);
 		} finally {
 			setIsLoading(false);
 		}
