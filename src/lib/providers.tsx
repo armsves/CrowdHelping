@@ -1,7 +1,20 @@
 "use client";
 
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
+import "@rainbow-me/rainbowkit/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { WagmiProvider } from "wagmi";
+
+import { getDefaultConfig } from "@rainbow-me/rainbowkit";
+import { sepolia } from "wagmi/chains";
+
+const config = getDefaultConfig({
+	appName: "My RainbowKit App",
+	projectId: "YOUR_PROJECT_ID",
+	chains: [sepolia],
+	ssr: true, // If your dApp uses server side rendering (SSR)
+});
 
 export default function Providers({ children }: { children: React.ReactNode }) {
 	const [queryClient] = useState(
@@ -17,6 +30,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 	);
 
 	return (
-		<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+		<WagmiProvider config={config}>
+			<QueryClientProvider client={queryClient}>
+				<RainbowKitProvider>{children}</RainbowKitProvider>
+			</QueryClientProvider>
+		</WagmiProvider>
 	);
 }
