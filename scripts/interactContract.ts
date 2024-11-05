@@ -10,7 +10,7 @@ import { sepolia } from "viem/chains";
 
 // Contract address
 const CONTRACT_ADDRESS =
-	"0xE66Fc7083f010f6Bd4bB0cb3083cbd789864eb9B" as `0x${string}`;
+	"0xFED5dC3244F67ACc3F55Fa6d76A4a06ED242b45E" as `0x${string}`;
 
 const main = async () => {
 	dotenv.config();

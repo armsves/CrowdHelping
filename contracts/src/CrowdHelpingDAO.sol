@@ -5,7 +5,7 @@ contract CrowdHelpingDAO {
     // State variables
     uint256 public totalActivities;
     address public immutable owner;
-        uint256 private count;
+    uint256 private count;
     
     struct Activity {
         uint256 id;
@@ -15,10 +15,13 @@ contract CrowdHelpingDAO {
         uint256 currentFunding;
         bool isVerified;
         bool fundsDelegated;
+        uint256 votes;
+        mapping(address => bool) hasVoted;
         mapping(address => uint256) donations;
     }
     
     mapping(uint256 => Activity) public activities;
+    mapping(address => bool) public verifiedUsers;
     
     // Events
     event ActivityCreated(uint256 indexed id, address indexed organizer, string activityType, uint256 fundingGoal);
@@ -27,6 +30,9 @@ contract CrowdHelpingDAO {
     event FundsDelegated(uint256 indexed id, uint256 amount);
     event EmergencyWithdraw(uint256 amount);
     event CountUpdated(uint256 newCount);
+    event UserVerified(address indexed user);
+    event UserUnverified(address indexed user);
+    event VoteCast(uint256 indexed activityId, address indexed voter);
 
     error InvalidActivity();
     error Unauthorized();
@@ -35,10 +41,13 @@ contract CrowdHelpingDAO {
     error FundingGoalNotReached();
     error FundsAlreadyDelegated();
     error TransferFailed();
+    error AlreadyVoted();
+    error NotVerifiedUser();
     
     constructor() {
         owner = msg.sender;
         count = 0;
+        verifiedUsers[msg.sender] = true; // Owner is verified by default
     }
     
     modifier activityExists(uint256 _activityId) {
@@ -50,6 +59,39 @@ contract CrowdHelpingDAO {
         if (msg.sender != owner) revert Unauthorized();
         _;
     }
+
+    modifier onlyVerifiedUser() {
+        if (!verifiedUsers[msg.sender]) revert NotVerifiedUser();
+        _;
+    }
+
+    // New function to verify users
+    function verifyUser(address _user) external onlyOwner {
+        verifiedUsers[_user] = true;
+        emit UserVerified(_user);
+    }
+
+    // New function to unverify users
+    function unverifyUser(address _user) external onlyOwner {
+        verifiedUsers[_user] = false;
+        emit UserUnverified(_user);
+    }
+
+    // New function to vote for an activity
+    function voteForActivity(uint256 _activityId) 
+        external 
+        activityExists(_activityId)
+        onlyVerifiedUser 
+    {
+        Activity storage activity = activities[_activityId];
+        if (activity.hasVoted[msg.sender]) revert AlreadyVoted();
+        
+        activity.votes++;
+        activity.hasVoted[msg.sender] = true;
+        
+        emit VoteCast(_activityId, msg.sender);
+    }
+
 
     function createActivity(
         string calldata _activityType, 
@@ -122,6 +164,7 @@ contract CrowdHelpingDAO {
         emit FundsDelegated(_activityId, fundsToDelegate);
     }
 
+    // Modified getActivity function to include votes
     function getActivity(uint256 _activityId) 
         external 
         view 
@@ -132,7 +175,8 @@ contract CrowdHelpingDAO {
             uint256 fundingGoal,
             uint256 currentFunding,
             bool isVerified,
-            bool fundsDelegated
+            bool fundsDelegated,
+            uint256 votes
         ) 
     {
         Activity storage activity = activities[_activityId];
@@ -142,8 +186,19 @@ contract CrowdHelpingDAO {
             activity.fundingGoal,
             activity.currentFunding,
             activity.isVerified,
-            activity.fundsDelegated
+            activity.fundsDelegated,
+            activity.votes
         );
+    }
+
+    // Function to check if a user has voted for an activity
+    function hasVoted(uint256 _activityId, address _user) 
+        external 
+        view 
+        activityExists(_activityId) 
+        returns (bool) 
+    {
+        return activities[_activityId].hasVoted[_user];
     }
 
     function getDonation(uint256 _activityId, address _donor) 
