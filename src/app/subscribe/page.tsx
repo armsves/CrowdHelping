@@ -13,7 +13,7 @@ import type { ISuccessResult } from "@worldcoin/idkit";
 import { IDKitWidget, VerificationLevel } from "@worldcoin/idkit";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { verify } from "../../actions/verify";
+import { verify } from "../actions/verify";
 
 export default function VerificationPage() {
 	const router = useRouter();
@@ -62,34 +62,21 @@ export default function VerificationPage() {
 		<div className="container max-w-md mx-auto py-10">
 			<Card>
 				<CardHeader>
-					<CardTitle>Verify Your Identity</CardTitle>
+					<CardTitle>Subscribe to CrowdHelping DAO</CardTitle>
 					<CardDescription>
-						Complete the verification to access the voting feature
+					Subscribe to CrowdHelping DAO to create and participate in activities
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					<div className="bg-muted p-4 rounded-lg space-y-2">
-						<h3 className="font-medium">Benefits of verification:</h3>
+						<h3 className="font-medium">Benefits of Subscription:</h3>
 						<ul className="list-disc pl-4 space-y-1 text-sm">
-							<li>Access to voting rights</li>
 							<li>Ability to create posts</li>
-							<li>Participate in community decisions</li>
+							<li>Access to voting rights</li>
+							<li>Participate in community activities</li>
 						</ul>
 					</div>
 
-					<IDKitWidget
-						app_id={process.env.NEXT_PUBLIC_WLD_APP_ID as `app_${string}`}
-						action={process.env.NEXT_PUBLIC_WLD_ACTION as string}
-						verification_level={VerificationLevel.Device}
-						handleVerify={handleProof}
-						onSuccess={onSuccess}
-					>
-						{({ open }) => (
-							<Button onClick={open} className="w-full" disabled={isLoading}>
-								{isLoading ? "Verifying..." : "Verify with World ID"}
-							</Button>
-						)}
-					</IDKitWidget>
 				</CardContent>
 			</Card>
 		</div>

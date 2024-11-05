@@ -34,8 +34,14 @@ const Header = () => {
 						</div>
 					</div>
 					<div className="flex items-center">
+          <a
+							href="/subscribe"
+							className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
+						>
+							Subscribe
+						</a>
 						<a
-							href="/pages/verify"
+							href="/verify"
 							className="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium"
 						>
 							Verify
