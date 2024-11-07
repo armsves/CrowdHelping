@@ -1,72 +1,102 @@
 "use client";
-
-import { formatJSON } from "@/app/utils";
-import { toast } from "@/hooks/use-toast";
-import {
-	type DelegationStruct,
-	Implementation,
-	type MetaMaskSmartAccount,
-	createRootDelegation,
-	toMetaMaskSmartAccount,
-} from "@codefi/delegator-core-viem";
-import { useQueries } from "@tanstack/react-query";
-import type { WEB3AUTH_NETWORK_TYPE } from "@web3auth/base";
-import { createPimlicoClient } from "permissionless/clients/pimlico";
+import { ToastContainer, toast } from 'react-toastify';
 import { useEffect, useState } from "react";
-import { createPublicClient, http, parseEther, zeroAddress } from "viem";
 import {
-	type UserOperationReceipt,
+	Client,
+	createPublicClient,
+	Hex,
+	http,
+	toHex,
+	zeroAddress,
+	parseEther,
+	encodeAbiParameters,
+} from "viem";
+import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { sepolia as chain } from "viem/chains";
+import {
+	Implementation,
+	toMetaMaskSmartAccount,
+	type MetaMaskSmartAccount,
+	type DelegationStruct,
+	createRootDelegation,
+	DelegationFramework,
+	SINGLE_DEFAULT_MODE,
+	getExplorerTransactionLink,
+	getExplorerAddressLink,
+	createExecution,
+	createCaveatBuilder,
+	ExecutionStruct,
+	DeleGatorEnvironment,
+	CaveatBuilder,
+	CaveatStruct,
+} from "@codefi/delegator-core-viem";
+import {
 	createBundlerClient,
 	createPaymasterClient,
+	UserOperationReceipt,
 } from "viem/account-abstraction";
-import { sepolia as chain } from "viem/chains";
+import { createPimlicoClient } from "permissionless/clients/pimlico";
+import { randomBytes } from "crypto";
 import {
 	type SignatoryFactoryName,
 	useSelectedSignatory,
 } from "../examples/signers/useSelectedSignatory";
-import { daoAbi } from "../utils/abi";
-import {
-	DeleGatorAccount,
-	type DeploymentStatus,
-	createSalt,
-	createSmartAccount,
-} from "../utils/daoHelpers";
-
-interface Activity {
-	creator: string;
-	description: string;
-	amount: bigint;
-}
+import { WEB3AUTH_NETWORK_TYPE } from "@web3auth/base";
+import { formatJSON } from "@/app/utils";
 
 const WEB3_AUTH_CLIENT_ID = process.env.NEXT_PUBLIC_WEB3_CLIENT_ID!;
 const WEB3_AUTH_NETWORK = process.env
 	.NEXT_PUBLIC_WEB3_AUTH_NETWORK! as WEB3AUTH_NETWORK_TYPE;
 const BUNDLER_URL = process.env.NEXT_PUBLIC_BUNDLER_URL!;
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL!;
+// if this is undefined, the API_KEY must be configured to Enable verifying paymaster
 const PAYMASTER_POLICY_ID = process.env.NEXT_PUBLIC_PAYMASTER_POLICY_ID;
 
-const DAO_CONTRACT = process.env.NEXT_PUBLIC_DAO_CONTRACT_ADDRESS! as `0x${string}`; 
+const createSalt = () => toHex(randomBytes(8).toString());
 
-const fetchActivity = async (id: number) => {
-	const publicClient = createPublicClient({
-		chain,
-		transport: http(RPC_URL),
+console.log('createSalt', createSalt());
+
+const createSmartAccount = (client: Client) => {
+	const privateKey = generatePrivateKey();
+	const owner = privateKeyToAccount(privateKey);
+
+	const account = toMetaMaskSmartAccount({
+		client,
+		implementation: Implementation.Hybrid,
+		deployParams: [owner.address, [], [], []],
+		signatory: { account: owner },
+		deploySalt: createSalt(),
 	});
 
-	const result = (await publicClient.readContract({
-		abi: daoAbi,
-		address: DAO_CONTRACT,
-		functionName: "getActivity",
-		args: [BigInt(id)],
-	})) as [string, string, bigint, bigint, boolean, boolean, bigint];
-	console.log("🚀 ~ fetchActivity ~ result:", id, result);
-
-	return {
-		creator: result[0],
-		description: result[1],
-		amount: result[2],
-	};
+	return account;
 };
+
+type DeploymentStatus =
+	| "deployed"
+	| "counterfactual"
+	| "deployment in progress";
+
+function DeleGatorAccount({
+	account,
+	deploymentStatus,
+}: {
+	account: MetaMaskSmartAccount<Implementation> | undefined;
+	deploymentStatus: DeploymentStatus;
+}) {
+	if (!account) {
+		return "NA";
+	}
+
+	const explorerUrl = getExplorerAddressLink(chain.id, account.address);
+
+	return (
+		<>
+			<a href={explorerUrl} target="_blank">
+				{account.address} - {deploymentStatus}
+			</a>
+		</>
+	);
+}
 
 function App() {
 	const [delegateAccount, setDelegateSmartAccount] = useState<MetaMaskSmartAccount<Implementation>>();
@@ -75,6 +105,7 @@ function App() {
 	const [userOpReceipt, setUserOpReceipt] = useState<UserOperationReceipt>();
 	const [delegateDeploymentStatus, setDelegateDeploymentStatus] = useState<DeploymentStatus>("counterfactual");
 	const [delegatorDeploymentStatus, setDelegatorDeploymentStatus] = useState<DeploymentStatus>("counterfactual");
+	const [isRedeemingDelegation, setIsRedeemingDelegation] = useState<boolean>(false);
 
 	const { selectedSignatory, setSelectedSignatoryName, selectedSignatoryName } =
 		useSelectedSignatory({
@@ -88,27 +119,14 @@ function App() {
 		setSelectedSignatoryName("injectedProviderSignatoryFactory");
 	}, [setSelectedSignatoryName]);
 
-	const activityQueries = useQueries({
-		queries: [1, 2].map((id) => ({
-			queryKey: ["activity", id],
-			queryFn: () => fetchActivity(id),
-		})),
-	});
-
-	const isLoading = activityQueries.some((query) => query.isLoading);
-	const isError = activityQueries.some((query) => query.isError);
-	const activities = activityQueries
-		.map((query) => query.data)
-		.filter(Boolean) as Activity[];
-
 	const client = createPublicClient({
 		chain,
 		transport: http(RPC_URL),
 	});
 	const paymasterContext = PAYMASTER_POLICY_ID
 		? {
-				sponsorshipPolicyId: PAYMASTER_POLICY_ID,
-			}
+			sponsorshipPolicyId: PAYMASTER_POLICY_ID,
+		}
 		: undefined;
 
 	const pimlicoClient = createPimlicoClient({
@@ -124,15 +142,18 @@ function App() {
 		paymasterContext,
 	});
 
-	const isValidSignatorySelected =
-		selectedSignatory && !selectedSignatory.isDisabled;
-
-	const canDeployDelegatorAccount =
-		delegatorAccount && delegatorDeploymentStatus === "counterfactual";
+	const isValidSignatorySelected = selectedSignatory && !selectedSignatory.isDisabled;
+	const canDeployDelegatorAccount = delegatorAccount && delegatorDeploymentStatus === "counterfactual";
 	const canCreateDelegation = !!(delegateAccount && delegatorAccount);
 	const canSignDelegation = !!(delegatorAccount && delegation);
+	const canRedeemDelegation = !!(delegatorDeploymentStatus === "deployed" &&
+		!isRedeemingDelegation &&
+		delegateAccount &&
+		delegation?.signature !== undefined &&
+		delegation?.signature !== "0x");
 	const canLogout = isValidSignatorySelected && selectedSignatory.canLogout();
 
+	// create the delegate account immediately on page load
 	useEffect(() => {
 		createSmartAccount(client).then(setDelegateSmartAccount);
 	}, []);
@@ -174,8 +195,6 @@ function App() {
 		setDelegatorAccount(smartAccount);
 		setDelegatorDeploymentStatus("counterfactual");
 		setDelegation(undefined);
-
-		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
 	const handleDeployDelegator = async () => {
@@ -197,39 +216,66 @@ function App() {
 			...fee,
 		});
 
-		console.log("waiting...");
-
-		const userOperationReceipt =
-			await bundlerClient.waitForUserOperationReceipt({ hash: userOpHash });
-		setUserOpReceipt(userOperationReceipt);
-
-		setDelegateDeploymentStatus("deployed");
-
-		console.log("🚀 ~ handleDeployDelegator ~ userOpHash:", userOpHash);
-		console.log(
-			"🚀 ~ handleDeployDelegator ~ userOperationReceipt:",
-			userOperationReceipt,
-		);
+		bundlerClient.waitForUserOperationReceipt({
+			hash: userOpHash,
+		});
 
 		setDelegatorDeploymentStatus("deployed");
-
-		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
-	const handleCreateDelegation = async () => {
+	const handleCreateDelegation = () => {
 		if (!canCreateDelegation) {
 			return;
 		}
 
+		////////////
+		const builder = (
+			_: DeleGatorEnvironment,
+			startTime: bigint,
+			interval: bigint,
+		): CaveatStruct => {
+			const terms = encodeAbiParameters(
+				[{ type: 'uint256' }, { type: 'uint256' }],
+				[startTime, interval],
+			);
+			return {
+				enforcer: '0xB54671e11F018261104a227222C67170a17AD56d',
+				terms,
+				args: '0x',
+			};
+		};
+
+		/*
+		const caveatBuilder = new CaveatBuilder(delegatorAccount.environment).extend(
+			'interval',
+			builder,
+		);
+		*/
+		const caveatBuilder = createCaveatBuilder(delegatorAccount.environment).extend(
+			'interval',
+			builder,
+		);
+		const startTimeSeconds = BigInt(Math.floor(Date.now() / 1000));
+		const intervalSeconds = BigInt(120);
+		caveatBuilder.addCaveat("interval", startTimeSeconds, intervalSeconds)
+		caveatBuilder.addCaveat("valueLte", 1n)
+		caveatBuilder.addCaveat("allowedTargets", ["0xE54c290BB38435cD442E94FCaC21c9faf42238f2" as Hex])
+
+		/////////////
+/*
+		const caveats = createCaveatBuilder(delegatorAccount.environment)
+			.addCaveat("allowedTargets", ["0xE54c290BB38435cD442E94FCaC21c9faf42238f2" as Hex])
+			.addCaveat("valueLte", 1n)
+			.build()
+*/
 		const newDelegation = createRootDelegation(
 			delegateAccount.address,
 			delegatorAccount.address,
-			[],
+			caveatBuilder,
+			BigInt(createSalt())
 		);
 
 		setDelegation(newDelegation);
-
-		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
 	const handleSignDelegation = async () => {
@@ -245,163 +291,196 @@ function App() {
 			...delegation,
 			signature,
 		});
-
-		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
-	const handleCallContract = async (activityId: number) => {
-		if (!canSignDelegation) {
+	//const handleRedeemDelegation = async () => {
+	const handleRedeemDelegation = async (target: Hex, value: bigint) => {
+
+		if (!canRedeemDelegation) {
 			return;
 		}
 
-		const { fast: fee } = await pimlicoClient.getUserOperationGasPrice();
+		setIsRedeemingDelegation(true);
 
-		const userOpHash = await bundlerClient.sendUserOperation({
-			account: delegatorAccount,
-			calls: [
-				{
-					abi: daoAbi,
-					to: DAO_CONTRACT,
-					functionName: "createActivity",
-					// value: parseEther("0.00001"),
-					args: ["work it baby 2", parseEther("1")],
-				},
-			],
-			...fee,
-		});
+		const executions: ExecutionStruct[] = [
+			{
+				//target: "0xE54c290BB38435cD442E94FCaC21c9faf42238f2",
+				//value: 1n,
+				target,
+				value,
+				callData: "0x",
+			},
+		];
 
-		console.log("userOpHash", userOpHash);
-
-		const userOperationReceipt =
-			await bundlerClient.waitForUserOperationReceipt({
-				hash: userOpHash,
-			});
-
-		console.log(
-			"🚀 ~ handleCallContract ~ userOperationReceipt:",
-			userOperationReceipt,
+		const delegationChain = [delegation];
+		const redeemDelegationCalldata = DelegationFramework.encode.redeemDelegations(
+			[delegationChain],
+			[SINGLE_DEFAULT_MODE],
+			[executions]
 		);
-		toast({
-			title: "Success!!!",
-		});
+
+
+		if (delegateDeploymentStatus === "counterfactual") { setDelegateDeploymentStatus("deployment in progress"); }
+		const { fast: fee } = await pimlicoClient.getUserOperationGasPrice();
+		let userOpHash: Hex;
+
+		try {
+
+			userOpHash = await bundlerClient.sendUserOperation({
+				account: delegateAccount,
+				calls: [
+					{
+						to: delegateAccount.address,
+						data: redeemDelegationCalldata,
+					},
+				],
+				...fee,
+			});
+			
+		} catch (error) {
+			setIsRedeemingDelegation(false);
+			console.log("error", error);
+			if (error instanceof Error && error.message.includes("IntervalEnforcer:interval-not-elapsed")) {
+				console.log("Time to claim has not passed yet, try again later")
+				toast.error("Time to claim has not passed yet, try again later");
+			}
+			if (error instanceof Error && error.message.includes("target-address-not-allowed")) {
+				console.log("Unauthorized target wallet address")
+				toast.error("Unauthorized target wallet address");
+			}
+			if (error instanceof Error && error.message.includes("returned no data")) {
+				console.log("Insufficient balance")
+				toast.error("Insufficient balance");
+			}
+			if (error instanceof Error && error.message.includes("value-too-high")) {
+				console.log("You can't redeem more than the allocated amount")
+				toast.error("You can't redeem more than the allocated amount");
+			}
+			if (error instanceof Error && error.message.includes("Invalid Smart Account nonce used for User Operation")) {
+				console.log("Error in the submitted nonce")
+				toast.error("Error in the submitted nonce");
+			}
+
+			if (delegateDeploymentStatus === "deployment in progress") {
+				setDelegateDeploymentStatus("counterfactual");
+			}
+			return;
+			//throw error;
+		}
+
+		const userOperationReceipt = await bundlerClient.waitForUserOperationReceipt({ hash: userOpHash });
+
+		setUserOpReceipt(userOperationReceipt);
+
+		setDelegateDeploymentStatus("deployed");
+
+		setIsRedeemingDelegation(false);
+
+		toast.success("Subscription claimed successfully!");
 	};
 
+	const userOpExplorerUrl = userOpReceipt && getExplorerTransactionLink(chain.id, userOpReceipt.receipt.transactionHash);
+
 	return (
-		<div className="p-6 bg-gray-50 rounded-lg space-y-6">
-			{/* Signatory Selection */}
-			{/* <div className="flex items-center gap-2">
-				<label className="font-medium text-gray-700">Signatory:</label>
-				<select
-					onChange={handleSignatoryChange}
-					value={selectedSignatoryName}
-					className="border border-gray-300 rounded-md px-3 py-1.5 bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-				>
-					<option value="injectedProviderSignatoryFactory">
-						Injected provider
-					</option>
-					<option value="burnerSignatoryFactory">Burner private key</option>
-					<option value="web3AuthSignatoryFactory">Web3Auth</option>
-				</select>
-			</div> */}
-			{/* Logout Button */}
+		<div>
+			<h2>Create subscription</h2>
+			<p>
+
+			</p>
+
+			<br />
 			{canLogout && (
 				<button
-					type="button"
 					onClick={handleLogout}
-					className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 					disabled={!canLogout}
 				>
 					Logout
 				</button>
 			)}
-
-			<h3 className="">
-				Create and deploy "delegator" accounts. Create and sign delegation.
-			</h3>
-			{/* <Button
-				type="button"
-				onClick={async () => {
-					await handleCreateDelegator();
-					await handleDeployDelegator();
-
-					await handleCreateDelegation();
-
-					await handleSignDelegation();
-				}}
-			>
-				🐊 DeleGator 🐊
-			</Button> */}
-
-			{/* Account Creation Buttons */}
-			<div className="flex gap-3">
-				<button
-					type="button"
-					onClick={handleCreateDelegator}
-					disabled={!isValidSignatorySelected}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+			<br />
+			<button
+				onClick={handleCreateDelegator}
+				disabled={!isValidSignatorySelected}
+				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					Create "delegator" Account
-				</button>
-				<button
-					type="button"
-					onClick={handleDeployDelegator}
-					disabled={!canDeployDelegatorAccount}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				Create "delegator" Account
+			</button>{" "}
+			<button
+				onClick={handleDeployDelegator}
+				disabled={!canDeployDelegatorAccount}
+				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
-					Deploy "delegator" Account
-				</button>
-			</div>
-			{/* Accounts Section */}
-			<div className="space-y-2">
-				<h3 className="text-lg font-semibold text-gray-900">Accounts:</h3>
-				<pre className="p-4 bg-white border border-gray-200 rounded-md overflow-auto text-sm text-gray-800">
-					Delegate:{" "}
-					<DeleGatorAccount
-						account={delegateAccount}
-						deploymentStatus={delegateDeploymentStatus}
-					/>
-					<br />
-					Delegator:{" "}
-					<DeleGatorAccount
-						account={delegatorAccount}
-						deploymentStatus={delegatorDeploymentStatus}
-					/>
+				Deploy "delegator" Account
+			</button>
+			<h3>Accounts:</h3>
+			<pre style={{ overflow: "auto" }}>
+				Delegate:{" "}
+				<DeleGatorAccount
+					account={delegateAccount}
+					deploymentStatus={delegateDeploymentStatus}
+				/>
+				<br />
+				Delegator:{" "}
+				<DeleGatorAccount
+					account={delegatorAccount}
+					deploymentStatus={delegatorDeploymentStatus}
+				/>
+			</pre>
+			<br />
+			<button
+				onClick={handleCreateDelegation}
+				disabled={!canCreateDelegation}
+				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+				Create Delegation
+			</button>{" "}
+			<button
+				onClick={handleSignDelegation}
+				disabled={!canSignDelegation}
+				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+				Sign Delegation
+			</button>
+			<h3>Delegation:</h3>
+			<pre style={{ overflow: "auto" }}>{formatJSON(delegation)}</pre>
+			<button
+				onClick={() => handleRedeemDelegation("0xE54c290BB38435cD442E94FCaC21c9faf42238f2" as Hex, 1n)}				
+				disabled={!canRedeemDelegation}
+				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+				Redeem Delegation Correctly
+			</button>
+			<br/>
+			<button
+				onClick={() => handleRedeemDelegation("0xE54c290BB38435cD442E94FCaC21c9faf42238f2" as Hex, 2n)}				
+				disabled={!canRedeemDelegation}
+				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+				Redeem Delegation Incorrect Amount
+			</button>
+			<br/>
+			<button
+				onClick={() => handleRedeemDelegation(zeroAddress, 1n)}				
+				disabled={!canRedeemDelegation}
+				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+				>
+				Redeem Delegation Incorrect Destination Wallet
+			</button>
+			{isRedeemingDelegation && (
+				<span className="ml-2 inline-block animate-spin">🐊</span>
+			)}
+			<h3>UserOp receipt:</h3>
+			{userOpExplorerUrl && (
+				<a href={userOpExplorerUrl} target="_blank">
+					View transaction
+				</a>
+			)}
+			{userOpReceipt && (
+				<pre style={{ overflow: "auto", maxHeight: "200px" }}>
+					{formatJSON(userOpReceipt)}
 				</pre>
-			</div>
-			{/* Delegation Buttons */}
-			<div className="flex gap-3">
-				<button
-					type="button"
-					onClick={handleCreateDelegation}
-					disabled={!canCreateDelegation}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Create Delegation
-				</button>
-				<button
-					type="button"
-					onClick={handleSignDelegation}
-					disabled={!canSignDelegation}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Sign Delegation
-				</button>
-				{/* <button
-					type="button"
-					onClick={handleCallContract}
-					disabled={!canSignDelegation}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-				>
-					Call Contract
-				</button> */}
-			</div>
-			{/* Delegation Section */}
-			<div className="space-y-2">
-				<h3 className="text-lg font-semibold text-gray-900">Delegation:</h3>
-				<pre className="p-4 bg-white border border-gray-200 rounded-md overflow-auto text-sm text-gray-800">
-					{formatJSON(delegation)}
-				</pre>
-			</div>
+			)}
 		</div>
 	);
 }

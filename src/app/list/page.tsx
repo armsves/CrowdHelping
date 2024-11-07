@@ -1,13 +1,18 @@
 "use client";
-
+import { encodeFunctionData } from 'viem'
 import { formatJSON } from "@/app/utils";
-import { toast } from "@/hooks/use-toast";
+//import { toast } from "@/hooks/use-toast";
+import { ToastContainer, toast } from 'react-toastify';
 import {
 	type DelegationStruct,
 	Implementation,
 	type MetaMaskSmartAccount,
 	createRootDelegation,
 	toMetaMaskSmartAccount,
+	createCaveatBuilder,
+	createExecution,
+	DelegationFramework,
+	SINGLE_DEFAULT_MODE
 } from "@codefi/delegator-core-viem";
 import { useQueries } from "@tanstack/react-query";
 import type { WEB3AUTH_NETWORK_TYPE } from "@web3auth/base";
@@ -20,10 +25,7 @@ import {
 	createPaymasterClient,
 } from "viem/account-abstraction";
 import { sepolia as chain } from "viem/chains";
-import {
-	type SignatoryFactoryName,
-	useSelectedSignatory,
-} from "../examples/signers/useSelectedSignatory";
+import { type SignatoryFactoryName, useSelectedSignatory, } from "../examples/signers/useSelectedSignatory";
 import { daoAbi } from "../utils/abi";
 import {
 	DeleGatorAccount,
@@ -31,6 +33,7 @@ import {
 	createSalt,
 	createSmartAccount,
 } from "../utils/daoHelpers";
+import { createWalletClient, custom, Hex, toHex, type Address } from "viem";
 
 interface Activity {
 	creator: string;
@@ -71,16 +74,13 @@ const fetchActivity = async (id: number) => {
 };
 
 function App() {
-	const [delegateAccount, setDelegateSmartAccount] =
-		useState<MetaMaskSmartAccount<Implementation>>();
-	const [delegatorAccount, setDelegatorAccount] =
-		useState<MetaMaskSmartAccount<Implementation>>();
+	const [delegateAccount, setDelegateSmartAccount] = useState<MetaMaskSmartAccount<Implementation>>();
+	const [delegatorAccount, setDelegatorAccount] = useState<MetaMaskSmartAccount<Implementation>>();
 	const [delegation, setDelegation] = useState<DelegationStruct>();
 	const [userOpReceipt, setUserOpReceipt] = useState<UserOperationReceipt>();
-	const [delegateDeploymentStatus, setDelegateDeploymentStatus] =
-		useState<DeploymentStatus>("counterfactual");
-	const [delegatorDeploymentStatus, setDelegatorDeploymentStatus] =
-		useState<DeploymentStatus>("counterfactual");
+	const [delegateDeploymentStatus, setDelegateDeploymentStatus] = useState<DeploymentStatus>("counterfactual");
+	const [delegatorDeploymentStatus, setDelegatorDeploymentStatus] = useState<DeploymentStatus>("counterfactual");
+	const [owner, setOwner] = useState<Address>();
 
 	const { selectedSignatory, setSelectedSignatoryName, selectedSignatoryName } =
 		useSelectedSignatory({
@@ -101,6 +101,28 @@ function App() {
 		})),
 	});
 
+	useEffect(() => {
+		const fetchOwner = async () => {
+			try {
+				const provider = (window as any).ethereum;
+				if (provider) {
+					const accounts = await provider.request({
+						method: "eth_requestAccounts",
+					});
+					const [owner] = accounts as string[];
+					setOwner(accounts.address);
+					console.log("owner", owner);
+				} else {
+					console.error("Ethereum provider not found");
+				}
+			} catch (error) {
+				console.error("Error fetching owner account:", error);
+			}
+		};
+
+		fetchOwner();
+	}, []);
+
 	const isLoading = activityQueries.some((query) => query.isLoading);
 	const isError = activityQueries.some((query) => query.isError);
 	const activities = activityQueries
@@ -113,8 +135,8 @@ function App() {
 	});
 	const paymasterContext = PAYMASTER_POLICY_ID
 		? {
-				sponsorshipPolicyId: PAYMASTER_POLICY_ID,
-			}
+			sponsorshipPolicyId: PAYMASTER_POLICY_ID,
+		}
 		: undefined;
 
 	const pimlicoClient = createPimlicoClient({
@@ -130,11 +152,8 @@ function App() {
 		paymasterContext,
 	});
 
-	const isValidSignatorySelected =
-		selectedSignatory && !selectedSignatory.isDisabled;
-
-	const canDeployDelegatorAccount =
-		delegatorAccount && delegatorDeploymentStatus === "counterfactual";
+	const isValidSignatorySelected = selectedSignatory && !selectedSignatory.isDisabled;
+	const canDeployDelegatorAccount = delegatorAccount && delegatorDeploymentStatus === "counterfactual";
 	const canCreateDelegation = !!(delegateAccount && delegatorAccount);
 	const canSignDelegation = !!(delegatorAccount && delegation);
 	const canLogout = isValidSignatorySelected && selectedSignatory.canLogout();
@@ -227,10 +246,47 @@ function App() {
 			return;
 		}
 
+		/*
+	const environment = delegatorAccount.environment;
+	const caveatBuilder = createCaveatBuilder(environment);
+
+	const caveats = caveatBuilder
+	  // allowedTargets accepts an array of addresses.
+	  // This caveat restricts the caller to only use the delegation to interact with the specified address.
+	  .addCaveat("allowedTargets", ["0xc11F3a8E5C7D16b75c9E2F60d26f5321C6Af5E92"])
+	  // allowedMethods accepts an array of methods.
+	  // This caveat restricts the caller to only use the delegation to invoke the specified methods.
+	  .addCaveat("allowedMethods", [
+		"approve(address,uint256)",
+		"transfer(address,uint256)"
+	  ])
+	  // limitedCalls accepts a number.
+	  // This caveat restricts the caller to only use the delegation one time.
+	  .addCaveat("limitedCalls", 1)
+	  .build();
+
+	console.log('caveats', caveats);
+
+	const newDelegation = createRootDelegation(
+	  delegateAccount.address,
+	  delegatorAccount.address,
+	  caveats //aquí van los caveats, es decir restricciones
+	);
+		*/
+
+		const environment = delegatorAccount.environment;
+		const caveatBuilder = createCaveatBuilder(environment);
+		const caveats = caveatBuilder
+			.addCaveat("allowedMethods", [
+				"voteForActivity(uint256)",
+			])
+			.build();
+
 		const newDelegation = createRootDelegation(
 			delegateAccount.address,
 			delegatorAccount.address,
-			[],
+			caveats
+			//[],
 		);
 
 		setDelegation(newDelegation);
@@ -255,43 +311,147 @@ function App() {
 		await new Promise((resolve) => setTimeout(resolve, 0));
 	};
 
-	const handleVote = async (activityId: number) => {
+	const handleVoteTest = async (activityId: number) => {
 		console.log("activityId", activityId);
 
-		if (!canSignDelegation) {
+		/////////////
+		if (!delegation) {
+			console.log("No delegation");
 			return;
+		}
+
+		if (!delegateAccount) {
+			console.log("No delegate account");
+			return;
+		}
+
+
+		//const execution = createExecution();
+
+
+		const performVoteData = encodeFunctionData({
+			abi: daoAbi,
+			//functionName: 'verifyActivity',
+			functionName: 'voteForActivity',
+			args: [BigInt(activityId)]
+		})
+		
+		const execution = createExecution(DAO_CONTRACT_ADDRESS, 0n, performVoteData);
+
+		const data = DelegationFramework.encode.redeemDelegations(
+			[[delegation]],
+			[SINGLE_DEFAULT_MODE],
+			[[execution]]
+		);
+
+		if (delegateDeploymentStatus === "counterfactual") {
+			setDelegateDeploymentStatus("deployment in progress");
 		}
 
 		const { fast: fee } = await pimlicoClient.getUserOperationGasPrice();
 
-		const userOpHash = await bundlerClient.sendUserOperation({
-			account: delegatorAccount,
-			calls: [
-				{
-					abi: daoAbi,
-					to: DAO_CONTRACT_ADDRESS,
-					functionName: "voteForActivity",
-					args: [1n],
-				},
-			],
-			...fee,
-		});
+		let userOpHash: Hex;
 
-		console.log("userOpHash", userOpHash);
-
-		const userOperationReceipt =
-			await bundlerClient.waitForUserOperationReceipt({
-				hash: userOpHash,
+		try {
+			userOpHash = await bundlerClient.sendUserOperation({
+				account: delegateAccount,
+				calls: [
+					{
+						to: delegateAccount.address,
+						data,
+					},
+				],
+				...fee,
 			});
 
-		console.log(
-			"🚀 ~ handleCallContract ~ userOperationReceipt:",
-			userOperationReceipt,
-		);
-		toast({
-			title: "Success!!!",
-		});
+					const userOperationReceipt = await bundlerClient.waitForUserOperationReceipt({ hash: userOpHash });
 
+		setUserOpReceipt(userOperationReceipt);
+
+		setDelegateDeploymentStatus("deployed");
+
+		} catch (error)  {
+			//setIsRedeemingDelegation(false);
+			/*
+			if (delegateDeploymentStatus === "deployment in progress") {
+				setDelegateDeploymentStatus("counterfactual");
+			}
+			console.log("error", error);
+			throw error;*/
+			if (error instanceof Error) {
+				console.log("error", error.message);
+				if (error.message.includes("User denied transaction signature")) {
+					toast.error("User denied transaction signature");
+				} else if (error.message.includes("NotVerifiedUser")) {
+					console.log("NotVerifiedUser");
+					toast.error("User is not Verified");
+				} else if (error.message.includes("0x7c9a1cf9")) {
+					console.log("User has already voted");
+					toast.error("User has already voted");
+					//toast({ title: "User has already voted", });
+				} else {
+					toast.error("Error!!!");
+				}
+			}
+		}
+
+
+		//setIsRedeemingDelegation(false);
+
+		///////////////////
+	}
+
+	const handleVote = async (activityId: number) => {
+		try {
+			console.log("activityId", activityId);
+
+			if (!canSignDelegation) {
+				return;
+			}
+
+			const { fast: fee } = await pimlicoClient.getUserOperationGasPrice();
+
+			const userOpHash = await bundlerClient.sendUserOperation({
+				account: delegatorAccount,
+				//account: delegateAccount.address,
+				calls: [
+					{
+						abi: daoAbi,
+						to: DAO_CONTRACT_ADDRESS,
+						functionName: "voteForActivity",
+						args: [1n],
+					},
+				],
+				...fee,
+			});
+
+			console.log("userOpHash", userOpHash);
+
+			const userOperationReceipt =
+				await bundlerClient.waitForUserOperationReceipt({
+					hash: userOpHash,
+				});
+
+			console.log("🚀 ~ handleCallContract ~ userOperationReceipt:", userOperationReceipt,);
+			toast.success("Success!!!");
+
+		} catch (error) {
+			console.log("error", error);
+			if (error instanceof Error) {
+				if (error.message.includes("User denied transaction signature")) {
+					toast.error("User denied transaction signature");
+				} else if (error.message.includes("NotVerifiedUser")) {
+					console.log("NotVerifiedUser");
+					toast.error("User is not Verified");
+				} else if (error.message.includes("AlreadyVoted")) {
+					console.log("User has already voted");
+					toast.error("User has already voted");
+					//toast({ title: "User has already voted", });
+				} else {
+					toast.error("Error!!!");
+				}
+			}
+		}
 	}
 
 	const handleCallContract = async (activityId: number) => {
@@ -326,14 +486,13 @@ function App() {
 			"🚀 ~ handleCallContract ~ userOperationReceipt:",
 			userOperationReceipt,
 		);
-		toast({
-			title: "Success!!!",
-		});
+		toast.success("Success!!!")
+
 	};
 
 	return (
 		<div className="p-6 bg-gray-50 rounded-lg space-y-6">
-				{/* Signatory Selection */}
+			{/* Signatory Selection */}
 			{/* <div className="flex items-center gap-2">
 				<label className="font-medium text-gray-700">Signatory:</label>
 				<select
@@ -473,7 +632,7 @@ function App() {
 								</p>
 								<p>
 									<span className="font-semibold">Vote Count:</span>{" "}
-									{activity.votes.toString()} 
+									{activity.votes.toString()}
 								</p>
 
 								<button
@@ -483,6 +642,15 @@ function App() {
 									className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
 								>
 									Vote
+								</button>
+
+								<button
+									type="button"
+									onClick={() => handleVoteTest(index)}
+									//disabled={!canSignDelegation}
+									className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+								>
+									Vote Test
 								</button>
 							</div>
 						))}

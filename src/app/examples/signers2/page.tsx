@@ -93,18 +93,13 @@ function DeleGatorAccount({
 }
 
 function App() {
-  const [delegateAccount, setDelegateSmartAccount] =
-    useState<MetaMaskSmartAccount<Implementation>>();
-  const [delegatorAccount, setDelegatorAccount] =
-    useState<MetaMaskSmartAccount<Implementation>>();
+  const [delegateAccount, setDelegateSmartAccount] = useState<MetaMaskSmartAccount<Implementation>>();
+  const [delegatorAccount, setDelegatorAccount] = useState<MetaMaskSmartAccount<Implementation>>();
   const [delegation, setDelegation] = useState<DelegationStruct>();
   const [userOpReceipt, setUserOpReceipt] = useState<UserOperationReceipt>();
-  const [delegateDeploymentStatus, setDelegateDeploymentStatus] =
-    useState<DeploymentStatus>("counterfactual");
-  const [delegatorDeploymentStatus, setDelegatorDeploymentStatus] =
-    useState<DeploymentStatus>("counterfactual");
-  const [isRedeemingDelegation, setIsRedeemingDelegation] =
-    useState<boolean>(false);
+  const [delegateDeploymentStatus, setDelegateDeploymentStatus] =  useState<DeploymentStatus>("counterfactual");
+  const [delegatorDeploymentStatus, setDelegatorDeploymentStatus] = useState<DeploymentStatus>("counterfactual");
+  const [isRedeemingDelegation, setIsRedeemingDelegation] = useState<boolean>(false);
 
   const { selectedSignatory, setSelectedSignatoryName, selectedSignatoryName } =
     useSelectedSignatory({
@@ -137,20 +132,15 @@ function App() {
     paymasterContext,
   });
 
-  const isValidSignatorySelected =
-    selectedSignatory && !selectedSignatory.isDisabled;
-
-  const canDeployDelegatorAccount =
-    delegatorAccount && delegatorDeploymentStatus === "counterfactual";
+  const isValidSignatorySelected = selectedSignatory && !selectedSignatory.isDisabled;
+  const canDeployDelegatorAccount = delegatorAccount && delegatorDeploymentStatus === "counterfactual";
   const canCreateDelegation = !!(delegateAccount && delegatorAccount);
   const canSignDelegation = !!(delegatorAccount && delegation);
-  const canRedeemDelegation = !!(
-    delegatorDeploymentStatus === "deployed" &&
+  const canRedeemDelegation = !!(delegatorDeploymentStatus === "deployed" &&
     !isRedeemingDelegation &&
     delegateAccount &&
     delegation?.signature !== undefined &&
-    delegation?.signature !== "0x"
-  );
+    delegation?.signature !== "0x");
   const canLogout = isValidSignatorySelected && selectedSignatory.canLogout();
 
   // create the delegate account immediately on page load
@@ -324,9 +314,7 @@ function App() {
     setIsRedeemingDelegation(false);
   };
 
-  const userOpExplorerUrl =
-    userOpReceipt &&
-    getExplorerTransactionLink(chain.id, userOpReceipt.receipt.transactionHash);
+  const userOpExplorerUrl = userOpReceipt && getExplorerTransactionLink(chain.id, userOpReceipt.receipt.transactionHash);
 
   return (
     <div>

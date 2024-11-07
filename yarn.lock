@@ -3223,7 +3223,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:2.1.1, clsx@npm:^2.1.1":
+"clsx@npm:2.1.1, clsx@npm:^2.1.0, clsx@npm:^2.1.1":
   version: 2.1.1
   resolution: "clsx@npm:2.1.1"
   checksum: acd3e1ab9d8a433ecb3cc2f6a05ab95fe50b4a3cfc5ba47abb6cbf3754585fcb87b84e90c822a1f256c4198e3b41c7f6c391577ffc8678ad587fc0976b24fd57
@@ -4389,10 +4389,12 @@ __metadata:
     prop-types: ^15.8.1
     react: ^18.2.0
     react-dom: ^18.2.0
+    react-toastify: ^10.0.6
     supports-color: ^9.4.0
     tailwind-merge: ^2.5.4
     tailwindcss: ^3.4.10
     tailwindcss-animate: ^1.0.7
+    toastify: ^2.0.1
     typescript: ^5.2.2
     utf-8-validate: ^6.0.3
     viem: 2.x
@@ -6459,6 +6461,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-toastify@npm:^10.0.6":
+  version: 10.0.6
+  resolution: "react-toastify@npm:10.0.6"
+  dependencies:
+    clsx: ^2.1.0
+  peerDependencies:
+    react: ">=18"
+    react-dom: ">=18"
+  checksum: 89fa24718eba0800e2bc1f88121a6e119efd87df26344d5b3c86442d4a13fbd65b67932e01bd6442758f4fe3f5eca6c8fc80c1dfb51c8dc2a4ec06bdaf9762da
+  languageName: node
+  linkType: hard
+
 "react-universal-interface@npm:^0.6.2":
   version: 0.6.2
   resolution: "react-universal-interface@npm:0.6.2"
@@ -7251,6 +7265,13 @@ __metadata:
   dependencies:
     is-number: ^7.0.0
   checksum: f76fa01b3d5be85db6a2a143e24df9f60dd047d151062d0ba3df62953f2f697b16fe5dad9b0ac6191c7efc7b1d9dcaa4b768174b7b29da89d4428e64bc0a20ed
+  languageName: node
+  linkType: hard
+
+"toastify@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "toastify@npm:2.0.1"
+  checksum: f76e75605783c0fdfb839668e811d228e1fdf7255d55acbd9f356119ac3f02b051f92445bc7d22abf2442cd78fdcf89fc82912fbcbc74ac8de01815e87054ae9
   languageName: node
   linkType: hard
 

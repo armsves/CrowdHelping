@@ -5,6 +5,8 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Header from "../components/Header";
 import "../styles/globals.css";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const metadata: Metadata = {
 	title: "CrowdHelping",
@@ -21,7 +23,18 @@ export default function RootLayout(props: { children: ReactNode }) {
 						{/* <Link href="/pages/verify">Verify Yourself</Link> */}
 						{props.children}
 					</div>
-					<Toaster />
+			
+          <ToastContainer
+            position="bottom-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+           />
 					<Footer />
 				</Providers>
 			</body>
